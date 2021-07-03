@@ -13,6 +13,8 @@
   <body>
     <div id="app">
       <button id="overwrite">Overwrite</button>
+      <button id="undo">Undo</button>
+      <button id="redo">redo</button>
 
       <label>
         Line height
@@ -30,16 +32,9 @@
         />
       </label>
 
-
       <label>
         Font scale
-        <input
-          id="font-scale"
-          type="range"
-          min="0.5"
-          max="2"
-          step="0.01"
-        />
+        <input id="font-scale" type="range" min="0.5" max="2" step="0.01" />
       </label>
 
       <canvas id="paper"></canvas>

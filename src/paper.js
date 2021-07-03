@@ -70,14 +70,21 @@ export default class Paper {
     let cursorRendered = false;
 
     if (!historyText) {
-      console.log('ht', historyText);
-      console.log();
-      console.log('empty');
+      console.log('no text');
       let c1 = this.padding.x + (0 * width) / (this.grid.x - 1);
       let c2 = this.padding.y + (0 * height) / (this.grid.y - 1);
       this.drawLetter('_', lw, c1, c2);
       return;
     }
+
+    if (historyText.cursorIndex === null) {
+      console.log('no text');
+      let c1 = this.padding.x + (0 * width) / (this.grid.x - 1);
+      let c2 = this.padding.y + (0 * height) / (this.grid.y - 1);
+      this.drawLetter('_', lw, c1, c2);
+      cursorRendered = true;
+    }
+
     let i, j;
 
     for (i = 0; i < this.grid.y; i++) {
@@ -116,12 +123,15 @@ export default class Paper {
               this.drawLetter('_', lw, c1, c2);
               cursorRendered = true;
             } else {
+              //non-overwrite: render cursor at next positiondd
               cursorNext = true;
             }
           }
         }
 
         if (!group && !cursorRendered) {
+          console.log('end cursor');
+          console.log(historyText);
           this.drawLetter('_', lw, c1, c2);
           cursorRendered = true;
 
@@ -138,11 +148,12 @@ export default class Paper {
       }
     }
 
-    if (!cursorRendered) {
-      let c1 = this.padding.x + (j * width) / (this.grid.x - 1);
-      let c2 = this.padding.y + (i * height) / (this.grid.y - 1);
-      this.drawLetter('_', lw, c1, c2);
-    }
+    // if (!cursorRendered) {
+    //   // if()
+    //   let c1 = this.padding.x + (j * width) / (this.grid.x - 1);
+    //   let c2 = this.padding.y + (i * height) / (this.grid.y - 1);
+    //   this.drawLetter('_', lw, c1, c2);
+    // }
   }
 
   //canvas dims
@@ -154,7 +165,6 @@ export default class Paper {
   }
 
   refreshCanvas() {
-    console.log(this.dimensions.w - 2 * this.padding.x);
     // recallibarate all variables and repaint
     // if dimensions/lineheight/fontRatio changed
 

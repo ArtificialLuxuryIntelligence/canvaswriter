@@ -189,13 +189,41 @@ var reloadCSS = require('_css_loader');
 
 module.hot.dispose(reloadCSS);
 module.hot.accept(reloadCSS);
-},{"_css_loader":"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/css-loader.js"}],"src/editor.js":[function(require,module,exports) {
+},{"_css_loader":"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/css-loader.js"}],"src/helpers.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.clone = clone;
+
+/**
+ * @function
+ * @description Deep clone a class instance.
+ * @param {object} instance The class instance you want to clone.
+ * @returns {object} A new cloned instance.
+ */
+function clone(instance) {
+  return Object.assign(Object.create( // Set the prototype of the new object to the prototype of the instance.
+  // Used to allow new object behave like class instance.
+  Object.getPrototypeOf(instance)), // Prevent shallow copies of nested structures like arrays, etc
+  JSON.parse(JSON.stringify(instance)));
+}
+},{}],"src/editor.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
+
+var _helpers = require("./helpers");
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
@@ -209,19 +237,12 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToAr
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-// Text
 var Editor = /*#__PURE__*/function () {
   function Editor() {
     _classCallCheck(this, Editor);
@@ -244,6 +265,7 @@ var Editor = /*#__PURE__*/function () {
     value: function handleKeyInput(key) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       this.updateHistory(key, options);
+      this.updateRemovedHistory(key);
       this.updateCursor(key, this.overwrite); //
     } //Handle cursor movement
 
@@ -296,23 +318,41 @@ var Editor = /*#__PURE__*/function () {
       return last;
     }
   }, {
-    key: "removeLastHistory",
-    value: function removeLastHistory() {
-      var removed = this.history.pop();
-      this.removeLastHistory.push(removed);
+    key: "undo",
+    value: function undo() {
+      //TODO: set the cursor index in the Editor...
+      var history = _toConsumableArray(this.history);
+
+      var removed = history.pop();
+      this.history = history;
+
+      if (removed) {
+        this.removedHistory.push(removed);
+      }
     }
   }, {
-    key: "restoreRemovedHistory",
-    value: function restoreRemovedHistory() {
-      var last = this.removedHistory.unshift();
-      this.history.push(last);
+    key: "redo",
+    value: function redo() {
+      var removedHistory = _toConsumableArray(this.removedHistory);
+
+      var removed = removedHistory.pop();
+      this.removedHistory = removedHistory;
+      console.log(removed);
+
+      if (removed) {
+        this.history.push(removed);
+      }
     } // add new text to history
 
   }, {
     key: "updateHistory",
     value: function updateHistory(key, options) {
       //get last history item
-      var text = this.getLastHistory();
+      var prevText = this.getLastHistory(); //clone last state..
+
+      var text = (0, _helpers.clone)(prevText); // let text = Object.assign({}, prevText);
+      // Object.setPrototypeOf(text, HistoryState.prototype);
+
       var entryGroup;
       var entry = new Entry(key, {}); // Handle delete
 
@@ -372,6 +412,26 @@ var Editor = /*#__PURE__*/function () {
           this.history.push(text);
         }
       }
+    }
+  }, {
+    key: "updateRemovedHistory",
+    value: function updateRemovedHistory(key) {
+      // this.removedHistory = [];
+      if (this.overwrite) {
+        if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Backspace') {
+          return;
+        }
+
+        this.removedHistory = [];
+      }
+
+      if (!this.overwrite) {
+        if (key === 'ArrowLeft' || key === 'ArrowRight') {
+          return;
+        }
+
+        this.removedHistory = [];
+      }
     } // update cursor valuesa
 
   }, {
@@ -420,6 +480,8 @@ var Editor = /*#__PURE__*/function () {
           //   //   last.groups[this.cursorIndex].cursor = true;
           // }
         }
+
+        last.cursorIndex = _this.cursorIndex;
       };
 
       if (!overwrite) {
@@ -501,6 +563,7 @@ var HistoryState = /*#__PURE__*/function () {
 
     this.groups = EntryGroups;
     this.cursorMovement = false;
+    this.cursorIndex = null;
   }
 
   _createClass(HistoryState, [{
@@ -788,7 +851,7 @@ var initHist = {
   }],
   cursorMovement: false
 };
-},{}],"src/paper.js":[function(require,module,exports) {
+},{"./helpers":"src/helpers.js"}],"src/paper.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -863,13 +926,22 @@ var Paper = /*#__PURE__*/function () {
       var cursorRendered = false;
 
       if (!historyText) {
-        console.log('ht', historyText);
-        console.log();
-        console.log('empty');
+        console.log('no text');
         var c1 = this.padding.x + 0 * width / (this.grid.x - 1);
         var c2 = this.padding.y + 0 * height / (this.grid.y - 1);
         this.drawLetter('_', lw, c1, c2);
         return;
+      }
+
+      if (historyText.cursorIndex === null) {
+        console.log('no text');
+
+        var _c = this.padding.x + 0 * width / (this.grid.x - 1);
+
+        var _c2 = this.padding.y + 0 * height / (this.grid.y - 1);
+
+        this.drawLetter('_', lw, _c, _c2);
+        cursorRendered = true;
       }
 
       var i, j;
@@ -909,12 +981,16 @@ var Paper = /*#__PURE__*/function () {
 
                 cursorRendered = true;
               } else {
+                //non-overwrite: render cursor at next positiondd
                 cursorNext = true;
               }
             }
           }
 
           if (!group && !cursorRendered) {
+            console.log('end cursor');
+            console.log(historyText);
+
             _this.drawLetter('_', lw, c1, c2);
 
             cursorRendered = true;
@@ -936,15 +1012,13 @@ var Paper = /*#__PURE__*/function () {
           // this.drawLetter('_', lw, c1, c2);
           break;
         }
-      }
+      } // if (!cursorRendered) {
+      //   // if()
+      //   let c1 = this.padding.x + (j * width) / (this.grid.x - 1);
+      //   let c2 = this.padding.y + (i * height) / (this.grid.y - 1);
+      //   this.drawLetter('_', lw, c1, c2);
+      // }
 
-      if (!cursorRendered) {
-        var _c = this.padding.x + j * width / (this.grid.x - 1);
-
-        var _c2 = this.padding.y + i * height / (this.grid.y - 1);
-
-        this.drawLetter('_', lw, _c, _c2);
-      }
     } //canvas dims
 
   }, {
@@ -966,9 +1040,8 @@ var Paper = /*#__PURE__*/function () {
   }, {
     key: "refreshCanvas",
     value: function refreshCanvas() {
-      console.log(this.dimensions.w - 2 * this.padding.x); // recallibarate all variables and repaint
+      // recallibarate all variables and repaint
       // if dimensions/lineheight/fontRatio changed
-
       this.ctx.clearRect(0, 0, this.dimensions.width, this.dimensions.heighth);
       this.canvas.width = this.dimensions.w;
       this.canvas.height = this.dimensions.h;
@@ -1056,7 +1129,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 console.clear();
 document.removeEventListener('keydown', handleKeyDown);
 var editor = new _editor.default();
-var paper = new _paper.default('paper'); // editor.overwrite = true;
+var paper = new _paper.default('paper');
+
+var renderLastText = function renderLastText(editor) {
+  paper.refreshCanvas();
+  console.log(editor);
+  var last = editor.getLastHistory();
+  paper.renderText(last, editor.overwrite);
+};
 
 function handleKeyDown(e) {
   e.preventDefault(); // console.log(e.key);
@@ -1068,11 +1148,6 @@ function handleKeyDown(e) {
   // console.log(editor.cursorIndex);
 
   renderLastText(editor);
-}
-
-function renderLastText(editor) {
-  var last = editor.getLastHistory();
-  paper.renderText(last, editor.overwrite);
 }
 
 function handleLineHeightRange(e) {
@@ -1095,10 +1170,25 @@ function handleOverwriteButton() {
   renderLastText(editor);
 }
 
+function handleUndoButton() {
+  editor.undo();
+  var last = editor.getLastHistory();
+  console.log(editor.history);
+  console.log('last', last);
+  renderLastText(editor);
+}
+
+function handleRedoButton() {
+  editor.redo();
+  renderLastText(editor);
+}
+
 document.getElementById('line-height').addEventListener('input', handleLineHeightRange);
 document.getElementById('letter-spacing').addEventListener('input', handleLetterSpacingRange);
 document.getElementById('font-scale').addEventListener('input', handleFontScaleRange);
 document.getElementById('overwrite').addEventListener('click', handleOverwriteButton);
+document.getElementById('undo').addEventListener('click', handleUndoButton);
+document.getElementById('redo').addEventListener('click', handleRedoButton);
 document.addEventListener('keydown', handleKeyDown);
 },{"./styles.scss":"styles.scss","./src/editor":"src/editor.js","./src/paper":"src/paper.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -1128,7 +1218,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "37419" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "39761" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

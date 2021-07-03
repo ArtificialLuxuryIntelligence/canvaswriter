@@ -1,5 +1,7 @@
 // Text
 
+import { clone } from './helpers';
+
 export default class Editor {
   constructor() {
     this.cursorIndex = 0;
@@ -15,6 +17,7 @@ export default class Editor {
   //Handle adding entries
   handleKeyInput(key, options = {}) {
     this.updateHistory(key, options);
+    this.updateRemovedHistory(key);
     this.updateCursor(key, this.overwrite);
 
     //
@@ -58,22 +61,39 @@ export default class Editor {
   //Handle history
   getLastHistory() {
     let last = this.history[this.history.length - 1] || new HistoryState();
-
     return last;
   }
-  removeLastHistory() {
-    let removed = this.history.pop();
-    this.removeLastHistory.push(removed);
+  undo() {
+    //TODO: set the cursor index in the Editor...
+    let history = [...this.history];
+    let removed = history.pop();
+
+    this.history = history;
+
+    if (removed) {
+      this.removedHistory.push(removed);
+    }
   }
-  restoreRemovedHistory() {
-    let last = this.removedHistory.unshift();
-    this.history.push(last);
+  redo() {
+    let removedHistory = [...this.removedHistory];
+    let removed = removedHistory.pop();
+    this.removedHistory = removedHistory;
+    console.log(removed);
+    if (removed) {
+      this.history.push(removed);
+    }
   }
 
   // add new text to history
   updateHistory(key, options) {
     //get last history item
-    let text = this.getLastHistory();
+    let prevText = this.getLastHistory();
+
+    //clone last state..
+    let text = clone(prevText);
+    // let text = Object.assign({}, prevText);
+    // Object.setPrototypeOf(text, HistoryState.prototype);
+
     let entryGroup;
     let entry = new Entry(key, {});
 
@@ -133,6 +153,21 @@ export default class Editor {
       }
     }
   }
+  updateRemovedHistory(key) {
+    // this.removedHistory = [];
+    if (this.overwrite) {
+      if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Backspace') {
+        return;
+      }
+      this.removedHistory = [];
+    }
+    if (!this.overwrite) {
+      if (key === 'ArrowLeft' || key === 'ArrowRight') {
+        return;
+      }
+      this.removedHistory = [];
+    }
+  }
   // update cursor valuesa
   updateCursor(key, overwrite) {
     const updateLastHistoryCursor = () => {
@@ -178,6 +213,8 @@ export default class Editor {
         //   //   last.groups[this.cursorIndex].cursor = true;
         // }
       }
+
+      last.cursorIndex = this.cursorIndex;
     };
 
     if (!overwrite) {
@@ -232,6 +269,7 @@ class HistoryState {
   constructor(EntryGroups = []) {
     this.groups = EntryGroups;
     this.cursorMovement = false;
+    this.cursorIndex = null;
   }
 
   add(Group) {
