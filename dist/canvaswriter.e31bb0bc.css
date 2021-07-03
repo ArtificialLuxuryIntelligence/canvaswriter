@@ -12,4 +12,9 @@ body {
   height: 80vh;
 }
 
+label,
+button {
+  margin: 1em;
+}
+
 /*# sourceMappingURL=/canvaswriter.e31bb0bc.css.map */

@@ -221,6 +221,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+// Text
 var Editor = /*#__PURE__*/function () {
   function Editor() {
     _classCallCheck(this, Editor);
@@ -291,7 +292,7 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "getLastHistory",
     value: function getLastHistory() {
-      var last = this.history[this.history.length - 1] || new HistoryText();
+      var last = this.history[this.history.length - 1] || new HistoryState();
       return last;
     }
   }, {
@@ -492,17 +493,17 @@ var EntryGroup = /*#__PURE__*/function () {
   return EntryGroup;
 }();
 
-var HistoryText = /*#__PURE__*/function () {
-  function HistoryText() {
+var HistoryState = /*#__PURE__*/function () {
+  function HistoryState() {
     var EntryGroups = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
-    _classCallCheck(this, HistoryText);
+    _classCallCheck(this, HistoryState);
 
     this.groups = EntryGroups;
     this.cursorMovement = false;
   }
 
-  _createClass(HistoryText, [{
+  _createClass(HistoryState, [{
     key: "add",
     value: function add(Group) {
       this.groups = [].concat(_toConsumableArray(this.groups), [Group]);
@@ -534,8 +535,259 @@ var HistoryText = /*#__PURE__*/function () {
     }
   }]);
 
-  return HistoryText;
+  return HistoryState;
 }();
+
+var initHist = {
+  groups: [{
+    cursor: false,
+    entries: [{
+      key: 'h',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'e',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'l',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'l',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'o',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: ' ',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'l',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'o',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'r',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'e',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'm',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: ' ',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'i',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'p',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 's',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'u',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'm',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: ' ',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'b',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'l',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'a',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'h',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: ' ',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'b',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'l',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'a',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'h',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: ' ',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'b',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'i',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'n',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'g',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: ' ',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'o',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: ' ',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'b',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'a',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'n',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: 'g',
+      styles: {}
+    }]
+  }, {
+    cursor: false,
+    entries: [{
+      key: ' ',
+      styles: {}
+    }]
+  }, {
+    cursor: true,
+    entries: [{
+      key: 'o',
+      styles: {}
+    }]
+  }],
+  cursorMovement: false
+};
 },{}],"src/paper.js":[function(require,module,exports) {
 "use strict";
 
@@ -550,6 +802,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+// Render a history state of editor
 var Paper = /*#__PURE__*/function () {
   function Paper(id) {
     _classCallCheck(this, Paper);
@@ -560,9 +813,9 @@ var Paper = /*#__PURE__*/function () {
       w: 300,
       h: 400
     };
-    this.fontRatio = 1;
-    this.lineHeight = 1;
-    this.letterSpacing = -0.34; //[-1,1]
+    this._fontRatio = 1;
+    this._lineHeight = 1;
+    this._letterSpacing = 0.5; //[0,1]
     //hidden variables this.__blah to do
 
     this.padding = {
@@ -585,35 +838,6 @@ var Paper = /*#__PURE__*/function () {
       this.renderText(null, true); // this.refreshCanvas();
     }
   }, {
-    key: "drawDots",
-    value: function drawDots() {
-      var _this$dimensions = this.dimensions,
-          w = _this$dimensions.w,
-          h = _this$dimensions.h;
-      var width = w - this.padding.x * 2;
-      var height = h - this.padding.y * 2;
-      var lw = width / this.grid.x; // let lh = height / this.grid.y;
-
-      for (var i = 0; i < this.grid.x; i++) {
-        for (var j = 0; j < this.grid.y; j++) {
-          var c1 = this.padding.x + i * width / (this.grid.x - 1);
-          var c2 = this.padding.y + j * height / (this.grid.y - 1);
-
-          if (i === 5 && j === 3) {
-            this.drawLetter('l', lw, c1, c2);
-          }
-
-          if (i === 6 && j === 3) {
-            this.drawLetter('y', lw, c1, c2);
-          }
-
-          this.ctx.beginPath();
-          this.ctx.arc(c1, c2, lw / 2, 0, 2 * Math.PI);
-          this.ctx.stroke();
-        }
-      }
-    }
-  }, {
     key: "drawLetter",
     value: function drawLetter(letter, fontSize, x, y) {
       this.ctx.textAlign = 'center';
@@ -627,15 +851,13 @@ var Paper = /*#__PURE__*/function () {
       var _this = this;
 
       var overwrite = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      var _this$dimensions2 = this.dimensions,
-          w = _this$dimensions2.w,
-          h = _this$dimensions2.h;
+      var _this$dimensions = this.dimensions,
+          w = _this$dimensions.w,
+          h = _this$dimensions.h;
       var width = w - this.padding.x * 2;
       var height = h - this.padding.y * 2; // let lw = width / this.grid.x;
 
       var lw = this.fontSize;
-      console.log('lheight', lw);
-      var lh = height / this.grid.y;
       var idx = 0;
       var cursorNext = false;
       var cursorRendered = false;
@@ -656,7 +878,12 @@ var Paper = /*#__PURE__*/function () {
         var _loop = function _loop() {
           var group = historyText === null || historyText === void 0 ? void 0 : historyText.groups[idx];
           var c1 = _this.padding.x + j * width / (_this.grid.x - 1);
-          var c2 = _this.padding.y + i * height / (_this.grid.y - 1);
+          var c2 = _this.padding.y + i * height / (_this.grid.y - 1); //debug
+          // this.ctx.beginPath();
+          // this.ctx.arc(c1, c2, 20 / 2, 0, 2 * Math.PI);
+          // this.ctx.stroke();
+          //
+
           var entries = group === null || group === void 0 ? void 0 : group.entries;
 
           if (entries && entries.length) {
@@ -697,7 +924,7 @@ var Paper = /*#__PURE__*/function () {
           idx++;
         };
 
-        for (j = 0; j < this.grid.x; j++) {
+        for (j = 0; j < this.grid.x - 1; j++) {
           var _ret = _loop();
 
           if (_ret === "break") break;
@@ -712,8 +939,6 @@ var Paper = /*#__PURE__*/function () {
       }
 
       if (!cursorRendered) {
-        console.log('none', i, j);
-
         var _c = this.padding.x + j * width / (this.grid.x - 1);
 
         var _c2 = this.padding.y + i * height / (this.grid.y - 1);
@@ -741,17 +966,75 @@ var Paper = /*#__PURE__*/function () {
   }, {
     key: "refreshCanvas",
     value: function refreshCanvas() {
-      // recallibarate all variables and repaint
+      console.log(this.dimensions.w - 2 * this.padding.x); // recallibarate all variables and repaint
       // if dimensions/lineheight/fontRatio changed
+
       this.ctx.clearRect(0, 0, this.dimensions.width, this.dimensions.heighth);
       this.canvas.width = this.dimensions.w;
       this.canvas.height = this.dimensions.h;
-      this.setPadding(this.dimensions.w / 12, this.dimensions.h / 8);
-      this.fontSize = this.fontRatio * this.dimensions.h / 10;
+      this.fontSize = this._fontRatio * this.dimensions.h / 10;
+      this.setPadding(this.dimensions.w / 10, this.fontSize);
+      this.setPadding(40, this.fontSize);
       this.grid = {
-        x: this.dimensions.w / (this.letterSpacing * this.fontSize + this.fontSize),
-        y: this.dimensions.h / (this.lineHeight * this.fontSize)
+        x: (this.dimensions.w - 2 * this.padding.x) / (this._letterSpacing * this.fontSize),
+        y: this.dimensions.h / (this._lineHeight * this.fontSize)
       };
+    }
+  }, {
+    key: "drawDots",
+    value: function drawDots() {
+      var _this$dimensions2 = this.dimensions,
+          w = _this$dimensions2.w,
+          h = _this$dimensions2.h;
+      var width = w - this.padding.x * 2;
+      var height = h - this.padding.y * 2;
+      var lw = width / this.grid.x; // let lh = height / this.grid.y;
+
+      for (var i = 0; i < this.grid.x; i++) {
+        for (var j = 0; j < this.grid.y; j++) {
+          var c1 = this.padding.x + i * width / (this.grid.x - 1);
+          var c2 = this.padding.y + j * height / (this.grid.y - 1);
+
+          if (i === 5 && j === 3) {
+            this.drawLetter('l', lw, c1, c2);
+          }
+
+          if (i === 6 && j === 3) {
+            this.drawLetter('y', lw, c1, c2);
+          }
+
+          this.ctx.beginPath();
+          this.ctx.arc(c1, c2, lw / 2, 0, 2 * Math.PI);
+          this.ctx.stroke();
+        }
+      }
+    }
+  }, {
+    key: "lineHeight",
+    get: function get() {
+      return this._lineHeight;
+    },
+    set: function set(val) {
+      this._lineHeight = val;
+      this.refreshCanvas();
+    }
+  }, {
+    key: "letterSpacing",
+    get: function get() {
+      return this.__letterSpacing;
+    },
+    set: function set(val) {
+      this._letterSpacing = val;
+      this.refreshCanvas();
+    }
+  }, {
+    key: "fontRatio",
+    get: function get() {
+      return this._fontRatio;
+    },
+    set: function set(val) {
+      this._fontRatio = val;
+      this.refreshCanvas();
     }
   }]);
 
@@ -773,21 +1056,49 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 console.clear();
 document.removeEventListener('keydown', handleKeyDown);
 var editor = new _editor.default();
-var paper = new _paper.default('paper');
-editor.overwrite = true;
+var paper = new _paper.default('paper'); // editor.overwrite = true;
 
 function handleKeyDown(e) {
   e.preventDefault(); // console.log(e.key);
 
   editor.handleKeyInput(e.key);
-  var last = editor.history[editor.history.length - 1];
-  paper.refreshCanvas();
-  last && paper.renderText(last, editor.overwrite);
-  console.log(last.groups.map(function (e) {
-    return e.entries[0].key;
-  })); // console.log(editor.cursorIndex);
+  paper.refreshCanvas(); // let last = editor.getLastHistory();
+  // paper.renderText(last, editor.overwrite);
+  // console.log(last.groups.map((e) => e.entries[0].key));
+  // console.log(editor.cursorIndex);
+
+  renderLastText(editor);
 }
 
+function renderLastText(editor) {
+  var last = editor.getLastHistory();
+  paper.renderText(last, editor.overwrite);
+}
+
+function handleLineHeightRange(e) {
+  paper.lineHeight = e.target.value;
+  renderLastText(editor);
+}
+
+function handleLetterSpacingRange(e) {
+  paper.letterSpacing = e.target.value;
+  renderLastText(editor);
+}
+
+function handleFontScaleRange(e) {
+  paper.fontRatio = e.target.value;
+  renderLastText(editor);
+}
+
+function handleOverwriteButton() {
+  editor.overwrite = !editor.overwrite;
+  renderLastText(editor);
+}
+
+document.getElementById('line-height').addEventListener('input', handleLineHeightRange);
+document.getElementById('letter-spacing').addEventListener('input', handleLetterSpacingRange);
+document.getElementById('font-scale').addEventListener('input', handleFontScaleRange);
+document.getElementById('overwrite').addEventListener('click', handleOverwriteButton);
 document.addEventListener('keydown', handleKeyDown);
 },{"./styles.scss":"styles.scss","./src/editor":"src/editor.js","./src/paper":"src/paper.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -817,7 +1128,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "41693" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "37419" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

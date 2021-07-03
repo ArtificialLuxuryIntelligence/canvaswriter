@@ -1,3 +1,5 @@
+// Text
+
 export default class Editor {
   constructor() {
     this.cursorIndex = 0;
@@ -17,7 +19,6 @@ export default class Editor {
 
     //
   }
-
   //Handle cursor movement
   incrCursor() {
     let last = this.getLastHistory().groups;
@@ -56,7 +57,7 @@ export default class Editor {
 
   //Handle history
   getLastHistory() {
-    let last = this.history[this.history.length - 1] || new HistoryText();
+    let last = this.history[this.history.length - 1] || new HistoryState();
 
     return last;
   }
@@ -227,7 +228,7 @@ class EntryGroup {
   }
 }
 
-class HistoryText {
+class HistoryState {
   constructor(EntryGroups = []) {
     this.groups = EntryGroups;
     this.cursorMovement = false;
@@ -255,3 +256,378 @@ class HistoryText {
     });
   }
 }
+
+const initHist = {
+  groups: [
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'h',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'e',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'l',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'l',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'o',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: ' ',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'l',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'o',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'r',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'e',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'm',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: ' ',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'i',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'p',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 's',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'u',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'm',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: ' ',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'b',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'l',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'a',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'h',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: ' ',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'b',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'l',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'a',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'h',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: ' ',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'b',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'i',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'n',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'g',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: ' ',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'o',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: ' ',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'b',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'a',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'n',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: 'g',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: false,
+      entries: [
+        {
+          key: ' ',
+          styles: {},
+        },
+      ],
+    },
+    {
+      cursor: true,
+      entries: [
+        {
+          key: 'o',
+          styles: {},
+        },
+      ],
+    },
+  ],
+  cursorMovement: false,
+};
