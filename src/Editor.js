@@ -211,7 +211,6 @@ export default class Editor {
         // Add entry to group at current index
         entryGroup = text.groups[this.cursorIndex];
         if (entryGroup) {
-          console.log(entryGroup);
           entryGroup.add(entry);
           text.replace(entryGroup, this.cursorIndex);
         } else {

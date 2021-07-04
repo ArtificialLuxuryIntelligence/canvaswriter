@@ -17,8 +17,8 @@ export default class Paper {
   #padding = { x: 0, y: 0 }; //maybe make accessible
   #fontSize = 1;
 
-  constructor(id) {
-    this.canvas = document.getElementById(id);
+  constructor(canvas) {
+    this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
 
     this._dimensions = { w: 300, h: 400 };
@@ -36,9 +36,9 @@ export default class Paper {
   }
 
   init() {
-    this.setDimensions(1200, 800);
-    this.refreshCanvas();
+    this.setDimensions(800, 400);
     this.#ANStyles = initAlphaNumStyles({ broken: this._broken });
+    this.refreshCanvas();
 
     this.renderText(null, true);
     // this.refreshCanvas();
@@ -218,8 +218,11 @@ export default class Paper {
     this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
     this.canvas.width = this._dimensions.w;
     this.canvas.height = this._dimensions.h;
+    // console.log(this.canvas.clientHeight);
+    // this.canvas.width =
+    //   this.canvas.height * (this.canvas.clientWidth / this.canvas.clientHeight);
 
-    this.#fontSize = (this._fontRatio * this._dimensions.h) / 10;
+    this.#fontSize = (this._fontRatio * this._dimensions.w) / 20;
     this.setPadding(this.#fontSize, this.#fontSize);
 
     let clampedPaddingX = clamp(

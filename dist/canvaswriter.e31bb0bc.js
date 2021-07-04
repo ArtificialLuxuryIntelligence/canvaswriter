@@ -1975,7 +1975,7 @@ function stubFalse() {
 
 module.exports = cloneDeep;
 
-},{}],"src/editor.js":[function(require,module,exports) {
+},{}],"src/Editor.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2247,7 +2247,6 @@ var Editor = /*#__PURE__*/function () {
           entryGroup = text.groups[this.cursorIndex];
 
           if (entryGroup) {
-            console.log(entryGroup);
             entryGroup.add(entry);
             text.replace(entryGroup, this.cursorIndex);
           } else {
@@ -2779,7 +2778,7 @@ var initAlphaNumStyles = function initAlphaNumStyles() {
 };
 
 exports.initAlphaNumStyles = initAlphaNumStyles;
-},{"./helpers":"src/helpers.js"}],"src/paper.js":[function(require,module,exports) {
+},{"./helpers":"src/helpers.js"}],"src/Paper.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2825,7 +2824,7 @@ var _fontSize = new WeakMap();
 var Paper = /*#__PURE__*/function () {
   // probably shouldn't mix _ and # but the _values are exposed thru getters...
   //maybe make accessible
-  function Paper(id) {
+  function Paper(canvas) {
     _classCallCheck(this, Paper);
 
     _grid.set(this, {
@@ -2856,7 +2855,7 @@ var Paper = /*#__PURE__*/function () {
       value: 1
     });
 
-    this.canvas = document.getElementById(id);
+    this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
     this._dimensions = {
       w: 300,
@@ -2876,13 +2875,13 @@ var Paper = /*#__PURE__*/function () {
   _createClass(Paper, [{
     key: "init",
     value: function init() {
-      this.setDimensions(1200, 800);
-      this.refreshCanvas();
+      this.setDimensions(800, 400);
 
       _classPrivateFieldSet(this, _ANStyles, (0, _alphaNumStyles.initAlphaNumStyles)({
         broken: this._broken
       }));
 
+      this.refreshCanvas();
       this.renderText(null, true); // this.refreshCanvas();
     } // Exposed variables (controls) --------------------------------------------
 
@@ -3027,9 +3026,11 @@ var Paper = /*#__PURE__*/function () {
       // called by most setters (like a react dep array kinda thing)
       this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
       this.canvas.width = this._dimensions.w;
-      this.canvas.height = this._dimensions.h;
+      this.canvas.height = this._dimensions.h; // console.log(this.canvas.clientHeight);
+      // this.canvas.width =
+      //   this.canvas.height * (this.canvas.clientWidth / this.canvas.clientHeight);
 
-      _classPrivateFieldSet(this, _fontSize, this._fontRatio * this._dimensions.h / 10);
+      _classPrivateFieldSet(this, _fontSize, this._fontRatio * this._dimensions.w / 20);
 
       this.setPadding(_classPrivateFieldGet(this, _fontSize), _classPrivateFieldGet(this, _fontSize));
       var clampedPaddingX = (0, _helpers.clamp)(_classPrivateFieldGet(this, _fontSize) / 2, this._dimensions.w / 14, this._dimensions.w / 10);
@@ -3202,165 +3203,287 @@ var Paper = /*#__PURE__*/function () {
 }();
 
 exports.default = Paper;
-},{"./alphaNumStyles":"src/alphaNumStyles.js","./helpers":"src/helpers.js"}],"index.js":[function(require,module,exports) {
+},{"./alphaNumStyles":"src/alphaNumStyles.js","./helpers":"src/helpers.js"}],"src/CanvasWriter.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _Editor = _interopRequireDefault(require("./Editor"));
+
+var _Paper = _interopRequireDefault(require("./Paper"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var CanvasWriter = /*#__PURE__*/function () {
+  function CanvasWriter(options) {
+    var _this = this;
+
+    _classCallCheck(this, CanvasWriter);
+
+    _defineProperty(this, "renderLastText", function () {
+      _this.paper.refreshCanvas();
+
+      var last = _this.editor.getLastHistory();
+
+      _this.paper.renderText(last, _this.editor.overwrite);
+    });
+
+    _defineProperty(this, "updateLetterControls", function (letterControls) {
+      var entry = _this.editor.getCurrentEntry();
+
+      if (!(entry === null || entry === void 0 ? void 0 : entry.styles)) {
+        return;
+      }
+
+      Object.values(letterControls).filter(function (v) {
+        return !!v;
+      }).forEach(function (input) {
+        var key = input.dataset.key;
+        input.value = entry.styles[key];
+      });
+    });
+
+    var elements = options.elements,
+        settings = options.settings;
+    var canvas = elements.canvas,
+        _elements$canvas = elements.canvas2,
+        canvas2 = _elements$canvas === void 0 ? null : _elements$canvas;
+    this.paper = new _Paper.default(canvas);
+    this.paper2 = canvas2 ? new _Paper.default(canvas2) : null; //second hidden canvas if needed ()
+
+    this.editor = new _Editor.default();
+    this.DOMControls = elements;
+    this.settings = settings;
+    this.init();
+  }
+
+  _createClass(CanvasWriter, [{
+    key: "init",
+    value: function init() {
+      this.editor.connect(this.paper);
+      this.addEventListeners(this.DOMControls);
+    }
+  }, {
+    key: "addEventListeners",
+    value: function addEventListeners(DOMControls) {
+      var _this2 = this;
+
+      var canvas = DOMControls.canvas,
+          canvas2 = DOMControls.canvas2,
+          _DOMControls$l_rotati = DOMControls.l_rotation_control,
+          l_rotation_control = _DOMControls$l_rotati === void 0 ? null : _DOMControls$l_rotati,
+          l_x_control = DOMControls.l_x_control,
+          l_y_control = DOMControls.l_y_control,
+          l_scale_control = DOMControls.l_scale_control,
+          l_color = DOMControls.l_color,
+          l_opacity = DOMControls.l_opacity,
+          t_color = DOMControls.t_color,
+          t_line_height = DOMControls.t_line_height,
+          t_letter_spacing = DOMControls.t_letter_spacing,
+          t_font_scale = DOMControls.t_font_scale,
+          t_broken = DOMControls.t_broken,
+          t_overwrite = DOMControls.t_overwrite,
+          t_undo = DOMControls.t_undo,
+          t_redo = DOMControls.t_redo,
+          t_key = DOMControls.t_key; //etc etc/
+
+      var letterControls = {
+        l_rotation_control: l_rotation_control,
+        l_x_control: l_x_control,
+        l_y_control: l_y_control,
+        l_scale_control: l_scale_control,
+        l_color: l_color,
+        l_opacity: l_opacity
+      };
+      var textControls = {
+        t_color: t_color,
+        t_line_height: t_line_height,
+        t_letter_spacing: t_letter_spacing,
+        t_font_scale: t_font_scale,
+        t_broken: t_broken,
+        t_overwrite: t_overwrite,
+        t_undo: t_undo,
+        t_redo: t_redo,
+        t_key: t_key
+      };
+
+      var addLetterControlListeners = function addLetterControlListeners(letterControls) {
+        Object.values(letterControls).filter(function (v) {
+          return !!v;
+        }) //if it exists
+        .forEach(function (input) {
+          var inputHandler = function inputHandler(e) {
+            var entry = _this2.editor.getCurrentEntry();
+
+            if (entry) {
+              var key = input.dataset.key;
+              var val = e.target.value; // console.log(key, val);
+
+              entry.editStyle(key, val);
+
+              _this2.renderLastText();
+            }
+          };
+
+          input.addEventListener('input', inputHandler);
+        });
+      };
+
+      var addTextControlListeners = function addTextControlListeners(textControls) {
+        var t_color = textControls.t_color,
+            t_line_height = textControls.t_line_height,
+            t_letter_spacing = textControls.t_letter_spacing,
+            t_font_scale = textControls.t_font_scale,
+            t_broken = textControls.t_broken,
+            t_overwrite = textControls.t_overwrite,
+            t_undo = textControls.t_undo,
+            t_redo = textControls.t_redo,
+            t_key = textControls.t_key;
+
+        var handleKeyDown = function handleKeyDown(e) {
+          e.preventDefault();
+
+          _this2.editor.handleKeyInput(e.key);
+
+          _this2.paper.refreshCanvas();
+
+          _this2.updateLetterControls(letterControls);
+
+          _this2.renderLastText();
+        };
+
+        var handleLineHeightRange = function handleLineHeightRange(e) {
+          _this2.paper.lineHeight = e.target.value;
+
+          _this2.renderLastText();
+        };
+
+        var handleLetterSpacingRange = function handleLetterSpacingRange(e) {
+          _this2.paper.letterSpacing = e.target.value;
+
+          _this2.renderLastText();
+        };
+
+        var handleFontScaleRange = function handleFontScaleRange(e) {
+          _this2.paper.fontRatio = e.target.value;
+
+          _this2.renderLastText();
+        };
+
+        var handleBrokenRange = function handleBrokenRange(e) {
+          _this2.paper.broken = e.target.value;
+
+          _this2.renderLastText();
+        };
+
+        var handleOverwriteButton = function handleOverwriteButton() {
+          _this2.editor.overwrite = !_this2.editor.overwrite;
+
+          _this2.renderLastText();
+        };
+
+        var handleUndoButton = function handleUndoButton() {
+          _this2.editor.undo();
+
+          var last = _this2.editor.getLastHistory(); // console.log(this.editor.history);
+          // console.log('last', last);
+
+
+          _this2.renderLastText();
+        };
+
+        var handleRedoButton = function handleRedoButton() {
+          _this2.editor.redo();
+
+          _this2.renderLastText();
+        };
+
+        var handleTextColorInput = function handleTextColorInput(e) {
+          _this2.paper.fontColor = e.target.value;
+          console.log(e.target.value);
+
+          _this2.renderLastText();
+        }; //Add listeners
+
+
+        t_color === null || t_color === void 0 ? void 0 : t_color.addEventListener('input', handleTextColorInput);
+        t_line_height === null || t_line_height === void 0 ? void 0 : t_line_height.addEventListener('input', handleLineHeightRange);
+        t_letter_spacing === null || t_letter_spacing === void 0 ? void 0 : t_letter_spacing.addEventListener('input', handleLetterSpacingRange);
+        t_font_scale === null || t_font_scale === void 0 ? void 0 : t_font_scale.addEventListener('input', handleFontScaleRange);
+        t_broken === null || t_broken === void 0 ? void 0 : t_broken.addEventListener('input', handleBrokenRange);
+        t_overwrite === null || t_overwrite === void 0 ? void 0 : t_overwrite.addEventListener('click', handleOverwriteButton);
+        t_undo === null || t_undo === void 0 ? void 0 : t_undo.addEventListener('click', handleUndoButton);
+        t_redo === null || t_redo === void 0 ? void 0 : t_redo.addEventListener('click', handleRedoButton);
+        t_key === null || t_key === void 0 ? void 0 : t_key.addEventListener('keydown', handleKeyDown);
+      };
+
+      var syncInitial = function syncInitial(DOMControls) {
+        var t_color = DOMControls.t_color; //   console.log('tc', t_color);
+
+        t_color && (t_color.value = _this2.paper.fontColor);
+      };
+
+      addTextControlListeners(textControls);
+      addLetterControlListeners(letterControls);
+      syncInitial(DOMControls);
+    }
+  }]);
+
+  return CanvasWriter;
+}();
+
+exports.default = CanvasWriter;
+},{"./Editor":"src/Editor.js","./Paper":"src/Paper.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 require("./styles.scss");
 
-var _editor = _interopRequireDefault(require("./src/editor"));
-
-var _paper = _interopRequireDefault(require("./src/paper"));
+var _CanvasWriter = _interopRequireDefault(require("./src/CanvasWriter"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 console.clear(); // const controller = new AbortController(); //too new
+///
 
-init(); ///
+var DOMElements = {
+  l_rotation_control: document.getElementById('letter-r'),
+  l_x_control: document.getElementById('letter-x'),
+  l_y_control: document.getElementById('letter-y'),
+  l_scale_control: document.getElementById('letter-s'),
+  l_color: document.getElementById('letter-color'),
+  l_opacity: document.getElementById('letter-o'),
+  t_color: document.getElementById('text-color'),
+  t_line_height: document.getElementById('line-height'),
+  t_letter_spacing: document.getElementById('letter-spacing'),
+  t_font_scale: document.getElementById('font-scale'),
+  t_broken: document.getElementById('broken'),
+  t_overwrite: document.getElementById('overwrite'),
+  t_undo: document.getElementById('undo'),
+  t_redo: document.getElementById('redo'),
+  t_key: document,
+  canvas: document.getElementById('paper')
+};
 
-function init() {
-  var paper = new _paper.default('paper');
-  var editor = new _editor.default();
-  editor.connect(paper); // TODO all controls in here (c,f, addTextConrolListeners)
-
-  var DOMControls = {
-    l_rotation_control: document.getElementById('letter-r'),
-    l_x_control: document.getElementById('letter-x'),
-    l_y_control: document.getElementById('letter-y'),
-    l_scale_control: document.getElementById('letter-s'),
-    l_color: document.getElementById('letter-color'),
-    l_opacity: document.getElementById('letter-o'),
-    t_color: document.getElementById('text-color')
-  }; // console.log(DOMControls);
-
-  var l_rotation_control = DOMControls.l_rotation_control,
-      l_x_control = DOMControls.l_x_control,
-      l_y_control = DOMControls.l_y_control,
-      l_scale_control = DOMControls.l_scale_control,
-      l_color = DOMControls.l_color,
-      l_opacity = DOMControls.l_opacity,
-      t_color = DOMControls.t_color;
-  var letterControls = {
-    l_rotation_control: l_rotation_control,
-    l_x_control: l_x_control,
-    l_y_control: l_y_control,
-    l_scale_control: l_scale_control,
-    l_color: l_color,
-    l_opacity: l_opacity
-  };
-  var textControls = {
-    t_color: t_color
-  };
-
-  var renderLastText = function renderLastText(editor) {
-    // console.log(editor);
-    paper.refreshCanvas();
-    var last = editor.getLastHistory();
-    paper.renderText(last, editor.overwrite);
-  };
-
-  function updateLetterControls(letterControls) {
-    var entry = editor.getCurrentEntry();
-
-    if (!(entry === null || entry === void 0 ? void 0 : entry.styles)) {
-      return;
-    }
-
-    Object.values(letterControls).forEach(function (input) {
-      var key = input.dataset.key;
-      input.value = entry.styles[key];
-    });
-  }
-
-  var addLetterControlListeners = function addLetterControlListeners(letterControls) {
-    Object.values(letterControls).forEach(function (input) {
-      function inputHandler(e) {
-        var entry = editor.getCurrentEntry();
-
-        if (entry) {
-          var key = input.dataset.key;
-          var val = e.target.value; // console.log(key, val);
-
-          entry.editStyle(input.dataset.key, val);
-          renderLastText(editor);
-        }
-      }
-
-      input.addEventListener('input', inputHandler);
-    });
-  };
-
-  function addTextControlListeners(textControls) {
-    var t_color = textControls.t_color;
-
-    function handleKeyDown(e) {
-      e.preventDefault();
-      editor.handleKeyInput(e.key);
-      paper.refreshCanvas();
-      updateLetterControls(letterControls);
-      renderLastText(editor);
-    }
-
-    function handleLineHeightRange(e) {
-      paper.lineHeight = e.target.value;
-      renderLastText(editor);
-    }
-
-    function handleLetterSpacingRange(e) {
-      paper.letterSpacing = e.target.value;
-      renderLastText(editor);
-    }
-
-    function handleFontScaleRange(e) {
-      paper.fontRatio = e.target.value;
-      renderLastText(editor);
-    }
-
-    function handleBrokenRange(e) {
-      paper.broken = e.target.value;
-      renderLastText(editor);
-    }
-
-    function handleOverwriteButton() {
-      editor.overwrite = !editor.overwrite;
-      renderLastText(editor);
-    }
-
-    function handleUndoButton() {
-      editor.undo();
-      var last = editor.getLastHistory(); // console.log(editor.history);
-      // console.log('last', last);
-
-      renderLastText(editor);
-    }
-
-    function handleRedoButton() {
-      editor.redo();
-      renderLastText(editor);
-    }
-
-    function handleTextColorInput(e) {
-      paper.fontColor = e.target.value;
-      console.log(e.target.value);
-      renderLastText(editor);
-    }
-
-    t_color.value = paper.fontColor;
-    t_color.addEventListener('input', handleTextColorInput); //redo this
-
-    document.getElementById('line-height').addEventListener('input', handleLineHeightRange);
-    document.getElementById('letter-spacing').addEventListener('input', handleLetterSpacingRange);
-    document.getElementById('font-scale').addEventListener('input', handleFontScaleRange);
-    document.getElementById('broken').addEventListener('input', handleBrokenRange);
-    document.getElementById('overwrite').addEventListener('click', handleOverwriteButton);
-    document.getElementById('undo').addEventListener('click', handleUndoButton);
-    document.getElementById('redo').addEventListener('click', handleRedoButton);
-    document.addEventListener('keydown', handleKeyDown);
-  }
-
-  addTextControlListeners(textControls);
-  addLetterControlListeners(letterControls);
+function main() {
+  var canvasWriter = new _CanvasWriter.default({
+    elements: DOMElements,
+    settings: {}
+  });
 }
-},{"./styles.scss":"styles.scss","./src/editor":"src/editor.js","./src/paper":"src/paper.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+
+main();
+},{"./styles.scss":"styles.scss","./src/CanvasWriter":"src/CanvasWriter.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
