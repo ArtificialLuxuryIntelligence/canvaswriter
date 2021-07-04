@@ -12,5 +12,8 @@
   "license": "ISC",
   "devDependencies": {
     "sass": "^1.35.1"
+  },
+  "dependencies": {
+    "lodash.clonedeep": "^4.5.0"
   }
 }

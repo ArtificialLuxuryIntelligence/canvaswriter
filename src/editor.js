@@ -1,6 +1,7 @@
 // Text
 
 import { clone } from './helpers';
+import cloneDeep from 'lodash.clonedeep';
 
 export default class Editor {
   constructor() {
@@ -90,7 +91,7 @@ export default class Editor {
     let prevText = this.getLastHistory();
 
     //clone last state..
-    let text = clone(prevText);
+    let text = cloneDeep(prevText);
     // let text = Object.assign({}, prevText);
     // Object.setPrototypeOf(text, HistoryState.prototype);
 
@@ -138,6 +139,7 @@ export default class Editor {
         // Add entry to group at current index
         entryGroup = text.groups[this.cursorIndex];
         if (entryGroup) {
+          console.log(entryGroup);
           entryGroup.add(entry);
           text.replace(entryGroup, this.cursorIndex);
         } else {
