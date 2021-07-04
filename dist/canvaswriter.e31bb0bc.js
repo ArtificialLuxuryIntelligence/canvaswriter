@@ -203,6 +203,7 @@ exports.clone = clone;
  * @param {object} instance The class instance you want to clone.
  * @returns {object} A new cloned instance.
  */
+// Does NOT recursively clone inner class references
 function clone(instance) {
   return Object.assign(Object.create( // Set the prototype of the new object to the prototype of the instance.
   // Used to allow new object behave like class instance.
@@ -2010,6 +2011,7 @@ var Editor = /*#__PURE__*/function () {
     this.init(); //options
 
     this.overwrite = false;
+    this.maxHistory = 10;
   }
 
   _createClass(Editor, [{
@@ -2074,16 +2076,28 @@ var Editor = /*#__PURE__*/function () {
       return last;
     }
   }, {
+    key: "addToHistory",
+    value: function addToHistory(historyItem) {
+      if (this.history.length === this.maxHistory) {
+        this.history.splice(0, 1);
+      }
+
+      this.history.push(historyItem);
+    }
+  }, {
     key: "undo",
     value: function undo() {
       //TODO: set the cursor index in the Editor...
       var history = _toConsumableArray(this.history);
 
-      var removed = history.pop();
-      this.history = history;
+      if (history.length > 1) {
+        var removed = history.pop();
+        console.log('removed', removed);
+        this.history = history;
 
-      if (removed) {
-        this.removedHistory.push(removed);
+        if (removed) {
+          this.removedHistory.push(removed);
+        }
       }
     }
   }, {
@@ -2096,7 +2110,7 @@ var Editor = /*#__PURE__*/function () {
       console.log(removed);
 
       if (removed) {
-        this.history.push(removed);
+        this.addToHistory(removed);
       }
     } // add new text to history
 
@@ -2122,14 +2136,14 @@ var Editor = /*#__PURE__*/function () {
           }
 
           text.remove(this.cursorIndex);
-          this.history.push(text);
+          this.addToHistory(text);
         }
 
         return;
       }
 
       if (key === 'ArrowLeft' || key === 'ArrowRight') {
-        this.history.push(text);
+        this.addToHistory(text);
         return;
       }
 
@@ -2145,7 +2159,7 @@ var Editor = /*#__PURE__*/function () {
         // is empty
         entryGroup = new EntryGroup(entry);
         text.insert(entryGroup, 0);
-        this.history.push(text);
+        this.addToHistory(text);
         return;
       } else {
         if (this.overwrite) {
@@ -2161,12 +2175,12 @@ var Editor = /*#__PURE__*/function () {
             text.insert(entryGroup, this.cursorIndex + 1);
           }
 
-          this.history.push(text);
+          this.addToHistory(text);
         } else {
           // Insert entry in entrygroup at next index
           entryGroup = new EntryGroup(entry);
           text.insert(entryGroup, this.cursorIndex + 1);
-          this.history.push(text);
+          this.addToHistory(text);
         }
       }
     }

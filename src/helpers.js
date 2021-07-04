@@ -4,6 +4,8 @@
  * @param {object} instance The class instance you want to clone.
  * @returns {object} A new cloned instance.
  */
+
+// Does NOT recursively clone inner class references
 function clone(instance) {
   return Object.assign(
     Object.create(

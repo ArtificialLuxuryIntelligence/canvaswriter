@@ -11,6 +11,7 @@ export default class Editor {
     this.init();
     //options
     this.overwrite = false;
+    this.maxHistory = 10;
   }
 
   init() {}
@@ -64,15 +65,25 @@ export default class Editor {
     let last = this.history[this.history.length - 1] || new HistoryState();
     return last;
   }
+
+  addToHistory(historyItem) {
+    if (this.history.length === this.maxHistory) {
+      this.history.splice(0, 1);
+    }
+    this.history.push(historyItem);
+  }
   undo() {
     //TODO: set the cursor index in the Editor...
     let history = [...this.history];
-    let removed = history.pop();
 
-    this.history = history;
+    if (history.length > 1) {
+      let removed = history.pop();
+      console.log('removed', removed);
+      this.history = history;
 
-    if (removed) {
-      this.removedHistory.push(removed);
+      if (removed) {
+        this.removedHistory.push(removed);
+      }
     }
   }
   redo() {
@@ -81,7 +92,7 @@ export default class Editor {
     this.removedHistory = removedHistory;
     console.log(removed);
     if (removed) {
-      this.history.push(removed);
+      this.addToHistory(removed);
     }
   }
 
@@ -108,13 +119,13 @@ export default class Editor {
           return;
         }
         text.remove(this.cursorIndex);
-        this.history.push(text);
+        this.addToHistory(text);
       }
       return;
     }
 
     if (key === 'ArrowLeft' || key === 'ArrowRight') {
-      this.history.push(text);
+      this.addToHistory(text);
       return;
     }
 
@@ -132,7 +143,7 @@ export default class Editor {
       // is empty
       entryGroup = new EntryGroup(entry);
       text.insert(entryGroup, 0);
-      this.history.push(text);
+      this.addToHistory(text);
       return;
     } else {
       if (this.overwrite) {
@@ -146,12 +157,12 @@ export default class Editor {
           entryGroup = new EntryGroup(entry);
           text.insert(entryGroup, this.cursorIndex + 1);
         }
-        this.history.push(text);
+        this.addToHistory(text);
       } else {
         // Insert entry in entrygroup at next index
         entryGroup = new EntryGroup(entry);
         text.insert(entryGroup, this.cursorIndex + 1);
-        this.history.push(text);
+        this.addToHistory(text);
       }
     }
   }
