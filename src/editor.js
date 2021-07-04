@@ -5,17 +5,23 @@ import cloneDeep from 'lodash.clonedeep';
 
 export default class Editor {
   constructor() {
+    this.paper = null;
     this.cursorIndex = 0;
     this.history = [];
     this.removedHistory = []; //undo functionality
-    this.init();
     //options
     this.overwrite = false;
     this.maxHistory = 10;
+    this.init();
   }
 
   init() {}
 
+  // Exposed methods --------------------------------------------
+
+  connect(paper) {
+    this.paper = paper;
+  }
   //Handle adding entries
   handleKeyInput(key, options = {}) {
     this.updateHistory(key, options);
@@ -24,6 +30,54 @@ export default class Editor {
 
     //
   }
+  undo() {
+    //TODO: set the cursor index in the Editor...
+    let history = [...this.history];
+
+    if (history.length > 1) {
+      let removed = history.pop();
+      console.log('removed', removed);
+      this.history = history;
+
+      if (removed) {
+        this.removedHistory.push(removed);
+      }
+    }
+  }
+  redo() {
+    let removedHistory = [...this.removedHistory];
+    let removed = removedHistory.pop();
+    this.removedHistory = removedHistory;
+    console.log(removed);
+    if (removed) {
+      this.addToHistory(removed);
+    }
+  }
+  getCurrentEntry() {
+    if (this.overwrite) {
+      return this.getEntry(this.cursorIndex);
+    } else {
+      return this.getEntry(this.nextCursorIndex());
+    }
+  }
+  getEntry(index) {
+    //returns top letter of stack in top history entry
+    // NOTE: if there is a paper instance connected, then it will also load in the style of that letter
+
+    let last = this.getLastHistory();
+    let group = last.groups[index];
+    let entry = group?.getLastEntry();
+    if (entry) {
+      if (!entry.styles) {
+        entry.setStyles(this.paper.getANStyles(entry.key));
+      }
+      // console.log(paper);
+    }
+
+    return entry;
+  }
+
+  // Internals --------------------------------------------
   //Handle cursor movement
   incrCursor() {
     let last = this.getLastHistory().groups;
@@ -60,7 +114,29 @@ export default class Editor {
     }
   }
 
-  //Handle history
+  nextCursorIndex() {
+    let last = this.getLastHistory().groups;
+    if (this.cursorIndex === null) {
+      return 0;
+    }
+    if (this.overwrite) {
+      if (this.cursorIndex < last.length) {
+        //?
+        return this.cursorIndex + 1;
+      } else {
+        return;
+      }
+    }
+    if (!this.overwrite) {
+      if (this.cursorIndex < last.length - 1) {
+        //?
+        return this.cursorIndex + 1;
+      } else {
+        return;
+      }
+    }
+  }
+
   getLastHistory() {
     let last = this.history[this.history.length - 1] || new HistoryState();
     return last;
@@ -71,29 +147,6 @@ export default class Editor {
       this.history.splice(0, 1);
     }
     this.history.push(historyItem);
-  }
-  undo() {
-    //TODO: set the cursor index in the Editor...
-    let history = [...this.history];
-
-    if (history.length > 1) {
-      let removed = history.pop();
-      console.log('removed', removed);
-      this.history = history;
-
-      if (removed) {
-        this.removedHistory.push(removed);
-      }
-    }
-  }
-  redo() {
-    let removedHistory = [...this.removedHistory];
-    let removed = removedHistory.pop();
-    this.removedHistory = removedHistory;
-    console.log(removed);
-    if (removed) {
-      this.addToHistory(removed);
-    }
   }
 
   // add new text to history
@@ -167,7 +220,7 @@ export default class Editor {
     }
   }
   updateRemovedHistory(key) {
-    // you can't redo if you have add new letters 
+    // you can't redo if you have add new letters
 
     if (this.overwrite) {
       if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Backspace') {
@@ -258,12 +311,17 @@ export default class Editor {
 
 class Entry {
   constructor(key, options) {
-    const { styles = {} } = options;
+    const { styles = null } = options;
     this.key = key;
     this.styles = styles;
+    this.editedStyles = false;
   }
 
-  addStyle(key, val) {
+  setStyles(styles) {
+    this.styles = styles;
+  }
+  editStyle(key, val) {
+    this.editedStyles = true;
     this.styles = { ...this.styles, [key]: val };
   }
 }
@@ -276,6 +334,9 @@ class EntryGroup {
 
   add(Entry) {
     this.entries = [...this.entries, Entry];
+  }
+  getLastEntry() {
+    return this.entries.slice(-1)[0];
   }
 }
 

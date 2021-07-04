@@ -1,23 +1,12 @@
-/**
- * @function
- * @description Deep clone a class instance.
- * @param {object} instance The class instance you want to clone.
- * @returns {object} A new cloned instance.
- */
-
-// Does NOT recursively clone inner class references
-function clone(instance) {
-  return Object.assign(
-    Object.create(
-      // Set the prototype of the new object to the prototype of the instance.
-      // Used to allow new object behave like class instance.
-      Object.getPrototypeOf(instance)
-    ),
-    // Prevent shallow copies of nested structures like arrays, etc
-    JSON.parse(JSON.stringify(instance))
-  );
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Number(Math.floor(Math.random() * (max - min + 1)) + min);
+}
+function getRandomArbitrary(min, max) {
+  return Number((Math.random() * (max - min) + min).toFixed(2));
 }
 
-const clamp = (a,b,c) => Math.max(b,Math.min(c,a));
+const clamp = (a, b, c) => Math.max(b, Math.min(c, a));
 
-export { clone, clamp };
+export { getRandomArbitrary, getRandomInt, clamp };

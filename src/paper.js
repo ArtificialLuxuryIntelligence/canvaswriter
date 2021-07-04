@@ -1,19 +1,23 @@
 // Render a history state of editor
 
+import { initAlphaNumStyles } from './alphaNumStyles';
 import { clamp } from './helpers';
 
-const testStyles = { scale: 1.5, rotation: 20, x: 2, y: 0 };
+const testStyles = { scale: 1.2, rotation: 20, x: 0.1, y: -0.2 };
 
 export default class Paper {
   constructor(id) {
     this.canvas = document.getElementById(id);
     this.ctx = this.canvas.getContext('2d');
+
     this.dimensions = { w: 300, h: 400 };
-    this._fontRatio = 1;
     this._lineHeight = 1;
     this._letterSpacing = 0.5; //[0,1]
+    this._fontRatio = 1;
+    this._broken = 0.5;
 
-    //hidden variables this.__blah to do
+    //internals
+    this.ANStyles = initAlphaNumStyles({ broken: this._broken });
     this.padding = { x: 0, y: 0 }; //maybe make accessible
     this.fontSize = 1;
     this.grid = {
@@ -27,9 +31,12 @@ export default class Paper {
   init() {
     this.setDimensions(1200, 800);
     this.refreshCanvas();
+    this.ANStyles = initAlphaNumStyles({ broken: this._broken });
+
     this.renderText(null, true);
     // this.refreshCanvas();
   }
+  // Exposed variables (controls) --------------------------------------------
 
   get lineHeight() {
     return this._lineHeight;
@@ -39,6 +46,9 @@ export default class Paper {
   }
   get fontRatio() {
     return this._fontRatio;
+  }
+  get broken() {
+    return this._broken;
   }
 
   set lineHeight(val) {
@@ -53,31 +63,15 @@ export default class Paper {
     this._fontRatio = val;
     this.refreshCanvas();
   }
-
-  drawLetter(letter, fontSize, x, y, styles) {
-    this.ctx.textAlign = 'center';
-    this.ctx.textBaseline = 'middle';
-    this.ctx.font = `${fontSize}px monospace`;
-    if (styles) {
-      const { scale, x: posX, y: posY, rotation: rot } = styles;
-      let scaleX = scale;
-      let scaleY = scale;
-
-      // this.ctx.translate(x, y);
-      this.ctx.setTransform(scaleX, 0, 0, scaleY, x + posX, y + posY); // scale and translate in one call
-      this.ctx.rotate((rot * Math.PI) / 180);
-
-      this.ctx.fillText(letter, 0, 0);
-
-      this.ctx.rotate((-rot * Math.PI) / 180);
-      this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
-      // this.ctx.translate(-x, -y);
-    } else {
-      this.ctx.fillText(letter, x, y);
-    }
-
-    //restore (ctx.restore /save is more CPU intensive apparently)
+  set broken(val) {
+    this._broken = val;
+    this.ANStyles = initAlphaNumStyles({ broken: this._broken });
+    this.refreshCanvas();
   }
+
+  // ---End exposed variables
+
+  // Exposed methods --------------------------------------------
 
   renderText(historyText, overwrite = false) {
     let { w, h } = this.dimensions;
@@ -91,7 +85,6 @@ export default class Paper {
     let cursorRendered = false;
 
     if (!historyText) {
-      console.log('no text');
       let c1 = this.padding.x + (0 * width) / (this.grid.x - 1);
       let c2 = this.padding.y + (0 * height) / (this.grid.y - 1);
       this.drawLetter('_', lw, c1, c2);
@@ -99,7 +92,6 @@ export default class Paper {
     }
 
     if (historyText.cursorIndex === null) {
-      console.log('no text');
       let c1 = this.padding.x + (0 * width) / (this.grid.x - 1);
       let c2 = this.padding.y + (0 * height) / (this.grid.y - 1);
       this.drawLetter('_', lw, c1, c2);
@@ -132,7 +124,7 @@ export default class Paper {
                 lw,
                 c1,
                 c2,
-                entry.key === 'a' ? testStyles : false
+                entry.editedStyles ? entry.styles : null
               );
             } else if (entry.key === 'Enter') {
               i++;
@@ -157,8 +149,6 @@ export default class Paper {
         }
 
         if (!group && !cursorRendered) {
-          console.log('end cursor');
-          console.log(historyText);
           this.drawLetter('_', lw, c1, c2);
           cursorRendered = true;
 
@@ -182,15 +172,6 @@ export default class Paper {
     //   this.drawLetter('_', lw, c1, c2);
     // }
   }
-
-  //canvas dims
-  setDimensions(w, h) {
-    this.dimensions = { w, h };
-  }
-  setPadding(x, y) {
-    this.padding = { x, y };
-  }
-
   refreshCanvas() {
     // recallibarate all variables and repaint
     // if dimensions/lineheight/fontRatio changed
@@ -207,12 +188,6 @@ export default class Paper {
       this.dimensions.w / 14,
       this.dimensions.w / 10
     );
-    console.log(
-      clampedPaddingX,
-      this.fontSize,
-      this.dimensions.w / 14,
-      this.dimensions.w / 10
-    );
 
     this.setPadding(clampedPaddingX, this.fontSize);
 
@@ -224,6 +199,63 @@ export default class Paper {
     };
   }
 
+  // ---End exposed methods --------------------------------------------
+
+  drawLetter(letter, fontSize, x, y, styles) {
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.font = `${fontSize}px monospace`;
+
+    let letterStyles;
+
+    let ANStyles = this.getANStyles(letter);
+    if (styles) {
+      //custom styles
+      letterStyles = styles;
+    } else if (ANStyles) {
+      //random typewriter styles
+      letterStyles = ANStyles;
+    }
+
+    if (letterStyles) {
+      const { scale, x: posX, y: posY, rotation: rot } = letterStyles;
+      let scaleX = scale;
+      let scaleY = scale;
+
+      // this.ctx.translate(x, y);
+      this.ctx.setTransform(
+        scaleX,
+        0,
+        0,
+        scaleY,
+        x + posX * fontSize,
+        y + posY * fontSize
+      ); // scale and translate in one call
+      this.ctx.rotate((rot * Math.PI) / 180);
+
+      this.ctx.fillText(letter, 0, 0);
+
+      this.ctx.rotate((-rot * Math.PI) / 180);
+      this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
+      // this.ctx.translate(-x, -y);
+    } else {
+      this.ctx.fillText(letter, x, y);
+    }
+
+    //restore (ctx.restore /save is more CPU intensive apparently)
+  }
+
+  getANStyles(key) {
+    return this.ANStyles[key];
+  }
+  setDimensions(w, h) {
+    this.dimensions = { w, h };
+  }
+  setPadding(x, y) {
+    this.padding = { x, y };
+  }
+
+  // Debug
   drawDots() {
     let { w, h } = this.dimensions;
     let width = w - this.padding.x * 2;

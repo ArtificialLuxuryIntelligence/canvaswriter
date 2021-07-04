@@ -195,21 +195,18 @@ module.hot.accept(reloadCSS);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.clone = clone;
+exports.getRandomArbitrary = getRandomArbitrary;
+exports.getRandomInt = getRandomInt;
 exports.clamp = void 0;
 
-/**
- * @function
- * @description Deep clone a class instance.
- * @param {object} instance The class instance you want to clone.
- * @returns {object} A new cloned instance.
- */
-// Does NOT recursively clone inner class references
-function clone(instance) {
-  return Object.assign(Object.create( // Set the prototype of the new object to the prototype of the instance.
-  // Used to allow new object behave like class instance.
-  Object.getPrototypeOf(instance)), // Prevent shallow copies of nested structures like arrays, etc
-  JSON.parse(JSON.stringify(instance)));
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Number(Math.floor(Math.random() * (max - min + 1)) + min);
+}
+
+function getRandomArbitrary(min, max) {
+  return Number((Math.random() * (max - min) + min).toFixed(2));
 }
 
 var clamp = function clamp(a, b, c) {
@@ -2011,19 +2008,26 @@ var Editor = /*#__PURE__*/function () {
   function Editor() {
     _classCallCheck(this, Editor);
 
+    this.paper = null;
     this.cursorIndex = 0;
     this.history = [];
     this.removedHistory = []; //undo functionality
-
-    this.init(); //options
+    //options
 
     this.overwrite = false;
     this.maxHistory = 10;
+    this.init();
   }
 
   _createClass(Editor, [{
     key: "init",
-    value: function init() {} //Handle adding entries
+    value: function init() {} // Exposed methods --------------------------------------------
+
+  }, {
+    key: "connect",
+    value: function connect(paper) {
+      this.paper = paper;
+    } //Handle adding entries
 
   }, {
     key: "handleKeyInput",
@@ -2032,7 +2036,64 @@ var Editor = /*#__PURE__*/function () {
       this.updateHistory(key, options);
       this.updateRemovedHistory(key);
       this.updateCursor(key, this.overwrite); //
-    } //Handle cursor movement
+    }
+  }, {
+    key: "undo",
+    value: function undo() {
+      //TODO: set the cursor index in the Editor...
+      var history = _toConsumableArray(this.history);
+
+      if (history.length > 1) {
+        var removed = history.pop();
+        console.log('removed', removed);
+        this.history = history;
+
+        if (removed) {
+          this.removedHistory.push(removed);
+        }
+      }
+    }
+  }, {
+    key: "redo",
+    value: function redo() {
+      var removedHistory = _toConsumableArray(this.removedHistory);
+
+      var removed = removedHistory.pop();
+      this.removedHistory = removedHistory;
+      console.log(removed);
+
+      if (removed) {
+        this.addToHistory(removed);
+      }
+    }
+  }, {
+    key: "getCurrentEntry",
+    value: function getCurrentEntry() {
+      if (this.overwrite) {
+        return this.getEntry(this.cursorIndex);
+      } else {
+        return this.getEntry(this.nextCursorIndex());
+      }
+    }
+  }, {
+    key: "getEntry",
+    value: function getEntry(index) {
+      //returns top letter of stack in top history entry
+      // NOTE: if there is a paper instance connected, then it will also load in the style of that letter
+      var last = this.getLastHistory();
+      var group = last.groups[index];
+      var entry = group === null || group === void 0 ? void 0 : group.getLastEntry();
+
+      if (entry) {
+        if (!entry.styles) {
+          entry.setStyles(this.paper.getANStyles(entry.key));
+        } // console.log(paper);
+
+      }
+
+      return entry;
+    } // Internals --------------------------------------------
+    //Handle cursor movement
 
   }, {
     key: "incrCursor",
@@ -2074,8 +2135,34 @@ var Editor = /*#__PURE__*/function () {
       } else if (this.cursorIndex > 0) {
         this.cursorIndex--;
       }
-    } //Handle history
+    }
+  }, {
+    key: "nextCursorIndex",
+    value: function nextCursorIndex() {
+      var last = this.getLastHistory().groups;
 
+      if (this.cursorIndex === null) {
+        return 0;
+      }
+
+      if (this.overwrite) {
+        if (this.cursorIndex < last.length) {
+          //?
+          return this.cursorIndex + 1;
+        } else {
+          return;
+        }
+      }
+
+      if (!this.overwrite) {
+        if (this.cursorIndex < last.length - 1) {
+          //?
+          return this.cursorIndex + 1;
+        } else {
+          return;
+        }
+      }
+    }
   }, {
     key: "getLastHistory",
     value: function getLastHistory() {
@@ -2090,35 +2177,6 @@ var Editor = /*#__PURE__*/function () {
       }
 
       this.history.push(historyItem);
-    }
-  }, {
-    key: "undo",
-    value: function undo() {
-      //TODO: set the cursor index in the Editor...
-      var history = _toConsumableArray(this.history);
-
-      if (history.length > 1) {
-        var removed = history.pop();
-        console.log('removed', removed);
-        this.history = history;
-
-        if (removed) {
-          this.removedHistory.push(removed);
-        }
-      }
-    }
-  }, {
-    key: "redo",
-    value: function redo() {
-      var removedHistory = _toConsumableArray(this.removedHistory);
-
-      var removed = removedHistory.pop();
-      this.removedHistory = removedHistory;
-      console.log(removed);
-
-      if (removed) {
-        this.addToHistory(removed);
-      }
     } // add new text to history
 
   }, {
@@ -2194,7 +2252,7 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "updateRemovedHistory",
     value: function updateRemovedHistory(key) {
-      // you can't redo if you have add new letters 
+      // you can't redo if you have add new letters
       if (this.overwrite) {
         if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Backspace') {
           return;
@@ -2297,14 +2355,21 @@ var Entry = /*#__PURE__*/function () {
     _classCallCheck(this, Entry);
 
     var _options$styles = options.styles,
-        styles = _options$styles === void 0 ? {} : _options$styles;
+        styles = _options$styles === void 0 ? null : _options$styles;
     this.key = key;
     this.styles = styles;
+    this.editedStyles = false;
   }
 
   _createClass(Entry, [{
-    key: "addStyle",
-    value: function addStyle(key, val) {
+    key: "setStyles",
+    value: function setStyles(styles) {
+      this.styles = styles;
+    }
+  }, {
+    key: "editStyle",
+    value: function editStyle(key, val) {
+      this.editedStyles = true;
       this.styles = _objectSpread(_objectSpread({}, this.styles), {}, _defineProperty({}, key, val));
     }
   }]);
@@ -2327,6 +2392,11 @@ var EntryGroup = /*#__PURE__*/function () {
     key: "add",
     value: function add(Entry) {
       this.entries = [].concat(_toConsumableArray(this.entries), [Entry]);
+    }
+  }, {
+    key: "getLastEntry",
+    value: function getLastEntry() {
+      return this.entries.slice(-1)[0];
     }
   }]);
 
@@ -2629,13 +2699,80 @@ var initHist = {
   }],
   cursorMovement: false
 };
-},{"./helpers":"src/helpers.js","lodash.clonedeep":"node_modules/lodash.clonedeep/index.js"}],"src/paper.js":[function(require,module,exports) {
+},{"./helpers":"src/helpers.js","lodash.clonedeep":"node_modules/lodash.clonedeep/index.js"}],"src/alphaNumStyles.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.initAlphaNumStyles = void 0;
+
+var _helpers = require("./helpers");
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var alphaNums = '`1234567890-=qwertyuiop[]asdfghjkl;\'zxcvbnm,./¬!"£$%^&*()+QWERTYUIOP{}~ASDFGHJKL:@ZXCVBNM<>?';
+
+var initAlphaNumStyles = function initAlphaNumStyles() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
+    broken: 0.5
+  };
+  var broken = opts.broken;
+  var rotationMax = 15;
+  var translationXMax = 0.25;
+  var translationYMax = 0.25;
+  var settings = {
+    rotation: broken * rotationMax,
+    translationX: broken * translationXMax,
+    translationY: broken * translationYMax
+  }; // make options if you want a consistent appearance for certain letters otherwise it's rando:
+
+  var ans = alphaNums.split('');
+  var styles = {};
+
+  var _iterator = _createForOfIteratorHelper(ans),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var a = _step.value;
+      //set as vars
+      var rotation = (0, _helpers.getRandomArbitrary)(-settings.rotation, settings.rotation);
+      var translationY = (0, _helpers.getRandomArbitrary)(-settings.translationY, settings.translationY);
+      var translationX = (0, _helpers.getRandomArbitrary)(-settings.translationX, settings.translationX); // styles[a] = {
+      //   transform: `rotate(${rotation}deg) translateY(${translationY}em) translateX(${translationX}em)`,
+      // };
+
+      styles[a] = {
+        rotation: rotation,
+        x: translationX,
+        y: translationY,
+        scale: 1
+      };
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  return styles;
+};
+
+exports.initAlphaNumStyles = initAlphaNumStyles;
+},{"./helpers":"src/helpers.js"}],"src/paper.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
+
+var _alphaNumStyles = require("./alphaNumStyles");
 
 var _helpers = require("./helpers");
 
@@ -2646,10 +2783,10 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var testStyles = {
-  scale: 1.5,
+  scale: 1.2,
   rotation: 20,
-  x: 2,
-  y: 0
+  x: 0.1,
+  y: -0.2
 };
 
 var Paper = /*#__PURE__*/function () {
@@ -2662,11 +2799,15 @@ var Paper = /*#__PURE__*/function () {
       w: 300,
       h: 400
     };
-    this._fontRatio = 1;
     this._lineHeight = 1;
     this._letterSpacing = 0.5; //[0,1]
-    //hidden variables this.__blah to do
 
+    this._fontRatio = 1;
+    this._broken = 0.5; //internals
+
+    this.ANStyles = (0, _alphaNumStyles.initAlphaNumStyles)({
+      broken: this._broken
+    });
     this.padding = {
       x: 0,
       y: 0
@@ -2685,37 +2826,16 @@ var Paper = /*#__PURE__*/function () {
     value: function init() {
       this.setDimensions(1200, 800);
       this.refreshCanvas();
+      this.ANStyles = (0, _alphaNumStyles.initAlphaNumStyles)({
+        broken: this._broken
+      });
       this.renderText(null, true); // this.refreshCanvas();
-    }
-  }, {
-    key: "drawLetter",
-    value: function drawLetter(letter, fontSize, x, y, styles) {
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.font = "".concat(fontSize, "px monospace");
+    } // Exposed variables (controls) --------------------------------------------
 
-      if (styles) {
-        var scale = styles.scale,
-            posX = styles.x,
-            posY = styles.y,
-            rot = styles.rotation;
-        var scaleX = scale;
-        var scaleY = scale; // this.ctx.translate(x, y);
-
-        this.ctx.setTransform(scaleX, 0, 0, scaleY, x + posX, y + posY); // scale and translate in one call
-
-        this.ctx.rotate(rot * Math.PI / 180);
-        this.ctx.fillText(letter, 0, 0);
-        this.ctx.rotate(-rot * Math.PI / 180);
-        this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
-        // this.ctx.translate(-x, -y);
-      } else {
-        this.ctx.fillText(letter, x, y);
-      } //restore (ctx.restore /save is more CPU intensive apparently)
-
-    }
   }, {
     key: "renderText",
+    // ---End exposed variables
+    // Exposed methods --------------------------------------------
     value: function renderText(historyText) {
       var _this = this;
 
@@ -2732,7 +2852,6 @@ var Paper = /*#__PURE__*/function () {
       var cursorRendered = false;
 
       if (!historyText) {
-        console.log('no text');
         var c1 = this.padding.x + 0 * width / (this.grid.x - 1);
         var c2 = this.padding.y + 0 * height / (this.grid.y - 1);
         this.drawLetter('_', lw, c1, c2);
@@ -2740,8 +2859,6 @@ var Paper = /*#__PURE__*/function () {
       }
 
       if (historyText.cursorIndex === null) {
-        console.log('no text');
-
         var _c = this.padding.x + 0 * width / (this.grid.x - 1);
 
         var _c2 = this.padding.y + 0 * height / (this.grid.y - 1);
@@ -2767,7 +2884,7 @@ var Paper = /*#__PURE__*/function () {
           if (entries && entries.length) {
             entries.forEach(function (entry) {
               if (entry.key.length === 1) {
-                _this.drawLetter(entry.key, lw, c1, c2, entry.key === 'a' ? testStyles : false);
+                _this.drawLetter(entry.key, lw, c1, c2, entry.editedStyles ? entry.styles : null);
               } else if (entry.key === 'Enter') {
                 i++;
                 j = -1;
@@ -2794,9 +2911,6 @@ var Paper = /*#__PURE__*/function () {
           }
 
           if (!group && !cursorRendered) {
-            console.log('end cursor');
-            console.log(historyText);
-
             _this.drawLetter('_', lw, c1, c2);
 
             cursorRendered = true;
@@ -2825,8 +2939,68 @@ var Paper = /*#__PURE__*/function () {
       //   this.drawLetter('_', lw, c1, c2);
       // }
 
-    } //canvas dims
+    }
+  }, {
+    key: "refreshCanvas",
+    value: function refreshCanvas() {
+      // recallibarate all variables and repaint
+      // if dimensions/lineheight/fontRatio changed
+      this.ctx.clearRect(0, 0, this.dimensions.width, this.dimensions.heighth);
+      this.canvas.width = this.dimensions.w;
+      this.canvas.height = this.dimensions.h;
+      this.fontSize = this._fontRatio * this.dimensions.h / 10;
+      this.setPadding(this.fontSize, this.fontSize);
+      var clampedPaddingX = (0, _helpers.clamp)(this.fontSize / 2, this.dimensions.w / 14, this.dimensions.w / 10);
+      this.setPadding(clampedPaddingX, this.fontSize);
+      this.grid = {
+        x: (this.dimensions.w - 2 * this.padding.x) / (this._letterSpacing * this.fontSize),
+        y: this.dimensions.h / (this._lineHeight * this.fontSize)
+      };
+    } // ---End exposed methods --------------------------------------------
 
+  }, {
+    key: "drawLetter",
+    value: function drawLetter(letter, fontSize, x, y, styles) {
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.font = "".concat(fontSize, "px monospace");
+      var letterStyles;
+      var ANStyles = this.getANStyles(letter);
+
+      if (styles) {
+        //custom styles
+        letterStyles = styles;
+      } else if (ANStyles) {
+        //random typewriter styles
+        letterStyles = ANStyles;
+      }
+
+      if (letterStyles) {
+        var _letterStyles = letterStyles,
+            scale = _letterStyles.scale,
+            posX = _letterStyles.x,
+            posY = _letterStyles.y,
+            rot = _letterStyles.rotation;
+        var scaleX = scale;
+        var scaleY = scale; // this.ctx.translate(x, y);
+
+        this.ctx.setTransform(scaleX, 0, 0, scaleY, x + posX * fontSize, y + posY * fontSize); // scale and translate in one call
+
+        this.ctx.rotate(rot * Math.PI / 180);
+        this.ctx.fillText(letter, 0, 0);
+        this.ctx.rotate(-rot * Math.PI / 180);
+        this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
+        // this.ctx.translate(-x, -y);
+      } else {
+        this.ctx.fillText(letter, x, y);
+      } //restore (ctx.restore /save is more CPU intensive apparently)
+
+    }
+  }, {
+    key: "getANStyles",
+    value: function getANStyles(key) {
+      return this.ANStyles[key];
+    }
   }, {
     key: "setDimensions",
     value: function setDimensions(w, h) {
@@ -2842,25 +3016,8 @@ var Paper = /*#__PURE__*/function () {
         x: x,
         y: y
       };
-    }
-  }, {
-    key: "refreshCanvas",
-    value: function refreshCanvas() {
-      // recallibarate all variables and repaint
-      // if dimensions/lineheight/fontRatio changed
-      this.ctx.clearRect(0, 0, this.dimensions.width, this.dimensions.heighth);
-      this.canvas.width = this.dimensions.w;
-      this.canvas.height = this.dimensions.h;
-      this.fontSize = this._fontRatio * this.dimensions.h / 10;
-      this.setPadding(this.fontSize, this.fontSize);
-      var clampedPaddingX = (0, _helpers.clamp)(this.fontSize / 2, this.dimensions.w / 14, this.dimensions.w / 10);
-      console.log(clampedPaddingX, this.fontSize, this.dimensions.w / 14, this.dimensions.w / 10);
-      this.setPadding(clampedPaddingX, this.fontSize);
-      this.grid = {
-        x: (this.dimensions.w - 2 * this.padding.x) / (this._letterSpacing * this.fontSize),
-        y: this.dimensions.h / (this._lineHeight * this.fontSize)
-      };
-    }
+    } // Debug
+
   }, {
     key: "drawDots",
     value: function drawDots() {
@@ -2917,13 +3074,25 @@ var Paper = /*#__PURE__*/function () {
       this._fontRatio = val;
       this.refreshCanvas();
     }
+  }, {
+    key: "broken",
+    get: function get() {
+      return this._broken;
+    },
+    set: function set(val) {
+      this._broken = val;
+      this.ANStyles = (0, _alphaNumStyles.initAlphaNumStyles)({
+        broken: this._broken
+      });
+      this.refreshCanvas();
+    }
   }]);
 
   return Paper;
 }();
 
 exports.default = Paper;
-},{"./helpers":"src/helpers.js"}],"index.js":[function(require,module,exports) {
+},{"./alphaNumStyles":"src/alphaNumStyles.js","./helpers":"src/helpers.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 require("./styles.scss");
@@ -2934,10 +3103,18 @@ var _paper = _interopRequireDefault(require("./src/paper"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-console.clear();
-document.removeEventListener('keydown', handleKeyDown);
-var editor = new _editor.default();
+console.clear(); // const controller = new AbortController(); //too new
+
 var paper = new _paper.default('paper');
+console.log('pp', paper);
+var editor = new _editor.default();
+editor.connect(paper);
+var DOMControls = {
+  l_rotation_control: document.getElementById('letter-r'),
+  l_x_control: document.getElementById('letter-x'),
+  l_y_control: document.getElementById('letter-y'),
+  l_scale_control: document.getElementById('letter-s')
+}; // console.log(DOMControls);
 
 var renderLastText = function renderLastText(editor) {
   // console.log(editor);
@@ -2946,58 +3123,101 @@ var renderLastText = function renderLastText(editor) {
   paper.renderText(last, editor.overwrite);
 };
 
-function handleKeyDown(e) {
-  e.preventDefault(); // console.log(e.key);
+function updateLetterControls() {
+  var entry = editor.getCurrentEntry();
 
-  editor.handleKeyInput(e.key);
-  paper.refreshCanvas(); // let last = editor.getLastHistory();
-  // paper.renderText(last, editor.overwrite);
-  // console.log(last.groups.map((e) => e.entries[0].key));
-  // console.log(editor.cursorIndex);
+  if (!(entry === null || entry === void 0 ? void 0 : entry.styles)) {
+    return;
+  }
 
-  renderLastText(editor);
+  Object.values(DOMControls).forEach(function (input) {
+    var key = input.dataset.key;
+    input.value = entry.styles[key];
+  });
 }
 
-function handleLineHeightRange(e) {
-  paper.lineHeight = e.target.value;
-  renderLastText(editor);
+var addLetterControlListeners = function addLetterControlListeners(DOMControls) {
+  var l_rotation_control = DOMControls.l_rotation_control,
+      l_x_control = DOMControls.l_x_control,
+      l_y_control = DOMControls.l_y_control,
+      l_scale_control = DOMControls.l_scale_control;
+  Object.values(DOMControls).forEach(function (input) {
+    function inputHandler(e) {
+      var entry = editor.getCurrentEntry();
+
+      if (entry) {
+        var key = input.dataset.key;
+        var val = e.target.value;
+        console.log(key, val);
+        entry.editStyle(input.dataset.key, val);
+        renderLastText(editor);
+      }
+    }
+
+    input.addEventListener('input', inputHandler);
+  });
+};
+
+function addTextControlListeners() {
+  function handleKeyDown(e) {
+    e.preventDefault(); // console.log(e.key);
+
+    editor.handleKeyInput(e.key);
+    paper.refreshCanvas();
+    updateLetterControls();
+    renderLastText(editor);
+  }
+
+  function handleLineHeightRange(e) {
+    paper.lineHeight = e.target.value;
+    renderLastText(editor);
+  }
+
+  function handleLetterSpacingRange(e) {
+    paper.letterSpacing = e.target.value;
+    renderLastText(editor);
+  }
+
+  function handleFontScaleRange(e) {
+    paper.fontRatio = e.target.value;
+    renderLastText(editor);
+  }
+
+  function handleBrokenRange(e) {
+    paper.broken = e.target.value;
+    renderLastText(editor);
+  }
+
+  function handleOverwriteButton() {
+    editor.overwrite = !editor.overwrite;
+    renderLastText(editor);
+  }
+
+  function handleUndoButton() {
+    editor.undo();
+    var last = editor.getLastHistory();
+    console.log(editor.history);
+    console.log('last', last);
+    renderLastText(editor);
+  }
+
+  function handleRedoButton() {
+    editor.redo();
+    renderLastText(editor);
+  }
+
+  document.getElementById('line-height').addEventListener('input', handleLineHeightRange);
+  document.getElementById('letter-spacing').addEventListener('input', handleLetterSpacingRange);
+  document.getElementById('font-scale').addEventListener('input', handleFontScaleRange);
+  document.getElementById('broken').addEventListener('input', handleBrokenRange);
+  document.getElementById('overwrite').addEventListener('click', handleOverwriteButton);
+  document.getElementById('undo').addEventListener('click', handleUndoButton);
+  document.getElementById('redo').addEventListener('click', handleRedoButton);
+  document.addEventListener('keydown', handleKeyDown);
 }
 
-function handleLetterSpacingRange(e) {
-  paper.letterSpacing = e.target.value;
-  renderLastText(editor);
-}
-
-function handleFontScaleRange(e) {
-  paper.fontRatio = e.target.value;
-  renderLastText(editor);
-}
-
-function handleOverwriteButton() {
-  editor.overwrite = !editor.overwrite;
-  renderLastText(editor);
-}
-
-function handleUndoButton() {
-  editor.undo();
-  var last = editor.getLastHistory();
-  console.log(editor.history);
-  console.log('last', last);
-  renderLastText(editor);
-}
-
-function handleRedoButton() {
-  editor.redo();
-  renderLastText(editor);
-}
-
-document.getElementById('line-height').addEventListener('input', handleLineHeightRange);
-document.getElementById('letter-spacing').addEventListener('input', handleLetterSpacingRange);
-document.getElementById('font-scale').addEventListener('input', handleFontScaleRange);
-document.getElementById('overwrite').addEventListener('click', handleOverwriteButton);
-document.getElementById('undo').addEventListener('click', handleUndoButton);
-document.getElementById('redo').addEventListener('click', handleRedoButton);
-document.addEventListener('keydown', handleKeyDown);
+addTextControlListeners(DOMControls);
+addLetterControlListeners(DOMControls);
 },{"./styles.scss":"styles.scss","./src/editor":"src/editor.js","./src/paper":"src/paper.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
