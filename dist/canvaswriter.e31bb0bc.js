@@ -195,6 +195,7 @@ module.hot.accept(reloadCSS);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.hex2rgba = hex2rgba;
 exports.getRandomArbitrary = getRandomArbitrary;
 exports.getRandomInt = getRandomInt;
 exports.clamp = void 0;
@@ -207,6 +208,14 @@ function getRandomInt(min, max) {
 
 function getRandomArbitrary(min, max) {
   return Number((Math.random() * (max - min) + min).toFixed(2));
+}
+
+function hex2rgba(hex, a) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  var r = parseInt(result[1], 16);
+  var g = parseInt(result[2], 16);
+  var b = parseInt(result[3], 16);
+  return "rgba(".concat(r, ",").concat(g, ",").concat(b, ",").concat(a, ")");
 }
 
 var clamp = function clamp(a, b, c) {
@@ -2015,7 +2024,7 @@ var Editor = /*#__PURE__*/function () {
     //options
 
     this.overwrite = false;
-    this.maxHistory = 10;
+    this.maxHistory = 100;
     this.init();
   }
 
@@ -2043,12 +2052,13 @@ var Editor = /*#__PURE__*/function () {
       //TODO: set the cursor index in the Editor...
       var history = _toConsumableArray(this.history);
 
-      if (history.length > 1) {
+      if (history.length >= 1) {
         var removed = history.pop();
         this.history = history;
 
         if (removed) {
           this.removedHistory.push(removed);
+          this.cursorIndex = removed.cursorIndex;
         }
       }
     }
@@ -2059,10 +2069,10 @@ var Editor = /*#__PURE__*/function () {
 
       var removed = removedHistory.pop();
       this.removedHistory = removedHistory;
-      console.log(removed);
 
       if (removed) {
         this.addToHistory(removed);
+        this.cursorIndex = removed.cursorIndex;
       }
     }
   }, {
@@ -2081,14 +2091,15 @@ var Editor = /*#__PURE__*/function () {
       // NOTE: if there is a paper instance connected, then it will also load in the style of that letter
       var last = this.getLastHistory();
       var group = last.groups[index];
-      var entry = group === null || group === void 0 ? void 0 : group.getLastEntry();
-
-      if (entry) {
-        if (!entry.styles) {
-          entry.setStyles(this.paper.getANStyles(entry.key));
-        } // console.log(paper);
-
-      }
+      var entry = group === null || group === void 0 ? void 0 : group.getLastEntry(); // if (entry) {
+      //   if (!entry.styles) {
+      //     entry.setStyles({
+      //       ...this.paper.getANStyles(entry.key),
+      //       color: this.paper.fontColor,
+      //     });
+      //   }
+      //   // console.log(paper);
+      // }
 
       return entry;
     } // Internals --------------------------------------------
@@ -2188,7 +2199,12 @@ var Editor = /*#__PURE__*/function () {
       // Object.setPrototypeOf(text, HistoryState.prototype);
 
       var entryGroup;
-      var entry = new Entry(key, {}); // Handle delete
+      var entry = new Entry(key, {});
+
+      if (this.paper) {
+        entry.setStyles(this.paper.createEntryStyles(entry));
+      } // Handle delete
+
 
       if (key === 'Backspace') {
         if (this.overwrite) {
@@ -2368,8 +2384,8 @@ var Entry = /*#__PURE__*/function () {
   }, {
     key: "editStyle",
     value: function editStyle(key, val) {
-      this.editedStyles = true;
       this.styles = _objectSpread(_objectSpread({}, this.styles), {}, _defineProperty({}, key, val));
+      this.editedStyles = true;
     }
   }]);
 
@@ -2775,6 +2791,12 @@ var _alphaNumStyles = require("./alphaNumStyles");
 
 var _helpers = require("./helpers");
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -2844,7 +2866,9 @@ var Paper = /*#__PURE__*/function () {
     this._letterSpacing = 0.5; //[0,1]
 
     this._fontRatio = 1;
-    this._broken = 0.5; //internals [use #?]
+    this._broken = 0.2;
+    this._fontColor = '#500000';
+    this.randomOpacity = true; //internals [use #?]
 
     this.init();
   }
@@ -2940,7 +2964,7 @@ var Paper = /*#__PURE__*/function () {
           if (entries && entries.length) {
             entries.forEach(function (entry) {
               if (entry.key.length === 1) {
-                _this.drawLetter(entry.key, c1, c2, entry.editedStyles ? entry.styles : null);
+                _this.drawLetter(entry.key, c1, c2, entry.styles, entry.editedStyles);
               } else if (entry.key === 'Enter') {
                 i++;
                 j = -1;
@@ -3000,7 +3024,7 @@ var Paper = /*#__PURE__*/function () {
     key: "refreshCanvas",
     value: function refreshCanvas() {
       // recallibarate all variables and repaint
-      // if dimensions/lineheight/fontRatio changed
+      // called by most setters (like a react dep array kinda thing)
       this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
       this.canvas.width = this._dimensions.w;
       this.canvas.height = this._dimensions.h;
@@ -3019,14 +3043,16 @@ var Paper = /*#__PURE__*/function () {
 
   }, {
     key: "drawLetter",
-    value: function drawLetter(letter, x, y, styles) {
+    value: function drawLetter(letter, x, y, styles, editedStyles) {
       this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.font = "".concat(_classPrivateFieldGet(this, _fontSize), "px monospace");
+      this.ctx.textBaseline = 'middle'; // this.ctx.font = `${this.#fontSize}px JetBrains Mono`;
+
+      this.ctx.font = "".concat(_classPrivateFieldGet(this, _fontSize), "px Roboto Mono");
+      this.ctx.fillStyle = this._fontColor;
       var letterStyles;
       var ANStyles = this.getANStyles(letter);
 
-      if (styles) {
+      if (editedStyles) {
         //custom styles
         letterStyles = styles;
       } else if (ANStyles) {
@@ -3039,21 +3065,45 @@ var Paper = /*#__PURE__*/function () {
             scale = _letterStyles.scale,
             posX = _letterStyles.x,
             posY = _letterStyles.y,
-            rot = _letterStyles.rotation;
+            rot = _letterStyles.rotation,
+            _letterStyles$color = _letterStyles.color,
+            color = _letterStyles$color === void 0 ? this._fontColor : _letterStyles$color,
+            _letterStyles$opacity = _letterStyles.opacity,
+            opacity = _letterStyles$opacity === void 0 ? styles.opacity : _letterStyles$opacity;
         var scaleX = scale;
-        var scaleY = scale; // this.ctx.translate(x, y);
+        var scaleY = scale; //color
+
+        var col;
+        col = (0, _helpers.hex2rgba)(color, opacity);
+        this.ctx.fillStyle = col; //transforms
 
         this.ctx.setTransform(scaleX, 0, 0, scaleY, x + posX * _classPrivateFieldGet(this, _fontSize), y + posY * _classPrivateFieldGet(this, _fontSize)); // scale and translate in one call
 
         this.ctx.rotate(rot * Math.PI / 180);
-        this.ctx.fillText(letter, 0, 0);
+        this.ctx.fillText(letter, 0, 0); //undo transforms
+
         this.ctx.rotate(-rot * Math.PI / 180);
         this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
-        // this.ctx.translate(-x, -y);
       } else {
         this.ctx.fillText(letter, x, y);
       } //restore (ctx.restore /save is more CPU intensive apparently)
 
+    }
+  }, {
+    key: "createEntryStyles",
+    value: function createEntryStyles(entry) {
+      var a;
+
+      if (this.randomOpacity) {
+        a = (0, _helpers.getRandomArbitrary)(0.5, 0.8);
+      } else {
+        a = 1;
+      }
+
+      return _objectSpread(_objectSpread({}, this.getANStyles(entry.key)), {}, {
+        color: this.fontColor,
+        opacity: a
+      });
     } // Debug
 
   }, {
@@ -3137,6 +3187,15 @@ var Paper = /*#__PURE__*/function () {
     get: function get() {
       return this._dimensions;
     }
+  }, {
+    key: "fontColor",
+    get: function get() {
+      return this._fontColor;
+    },
+    set: function set(val) {
+      this._fontColor = val;
+      this.refreshCanvas();
+    }
   }]);
 
   return Paper;
@@ -3156,119 +3215,151 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 console.clear(); // const controller = new AbortController(); //too new
 
-var paper = new _paper.default('paper');
-var editor = new _editor.default();
-editor.connect(paper); // TODO all controls in here (c,f, addTextConrolListeners)
+init(); ///
 
-var DOMControls = {
-  l_rotation_control: document.getElementById('letter-r'),
-  l_x_control: document.getElementById('letter-x'),
-  l_y_control: document.getElementById('letter-y'),
-  l_scale_control: document.getElementById('letter-s')
-}; // console.log(DOMControls);
+function init() {
+  var paper = new _paper.default('paper');
+  var editor = new _editor.default();
+  editor.connect(paper); // TODO all controls in here (c,f, addTextConrolListeners)
 
-var renderLastText = function renderLastText(editor) {
-  // console.log(editor);
-  paper.refreshCanvas();
-  var last = editor.getLastHistory();
-  paper.renderText(last, editor.overwrite);
-};
+  var DOMControls = {
+    l_rotation_control: document.getElementById('letter-r'),
+    l_x_control: document.getElementById('letter-x'),
+    l_y_control: document.getElementById('letter-y'),
+    l_scale_control: document.getElementById('letter-s'),
+    l_color: document.getElementById('letter-color'),
+    l_opacity: document.getElementById('letter-o'),
+    t_color: document.getElementById('text-color')
+  }; // console.log(DOMControls);
 
-function updateLetterControls() {
-  var entry = editor.getCurrentEntry();
-
-  if (!(entry === null || entry === void 0 ? void 0 : entry.styles)) {
-    return;
-  }
-
-  Object.values(DOMControls).forEach(function (input) {
-    var key = input.dataset.key;
-    input.value = entry.styles[key];
-  });
-}
-
-var addLetterControlListeners = function addLetterControlListeners(DOMControls) {
   var l_rotation_control = DOMControls.l_rotation_control,
       l_x_control = DOMControls.l_x_control,
       l_y_control = DOMControls.l_y_control,
-      l_scale_control = DOMControls.l_scale_control;
-  Object.values(DOMControls).forEach(function (input) {
-    function inputHandler(e) {
-      var entry = editor.getCurrentEntry();
+      l_scale_control = DOMControls.l_scale_control,
+      l_color = DOMControls.l_color,
+      l_opacity = DOMControls.l_opacity,
+      t_color = DOMControls.t_color;
+  var letterControls = {
+    l_rotation_control: l_rotation_control,
+    l_x_control: l_x_control,
+    l_y_control: l_y_control,
+    l_scale_control: l_scale_control,
+    l_color: l_color,
+    l_opacity: l_opacity
+  };
+  var textControls = {
+    t_color: t_color
+  };
 
-      if (entry) {
-        var key = input.dataset.key;
-        var val = e.target.value; // console.log(key, val);
+  var renderLastText = function renderLastText(editor) {
+    // console.log(editor);
+    paper.refreshCanvas();
+    var last = editor.getLastHistory();
+    paper.renderText(last, editor.overwrite);
+  };
 
-        entry.editStyle(input.dataset.key, val);
-        renderLastText(editor);
-      }
+  function updateLetterControls(letterControls) {
+    var entry = editor.getCurrentEntry();
+
+    if (!(entry === null || entry === void 0 ? void 0 : entry.styles)) {
+      return;
     }
 
-    input.addEventListener('input', inputHandler);
-  });
-};
-
-function addTextControlListeners() {
-  function handleKeyDown(e) {
-    e.preventDefault(); // console.log(e.key);
-
-    editor.handleKeyInput(e.key);
-    paper.refreshCanvas();
-    updateLetterControls();
-    renderLastText(editor);
+    Object.values(letterControls).forEach(function (input) {
+      var key = input.dataset.key;
+      input.value = entry.styles[key];
+    });
   }
 
-  function handleLineHeightRange(e) {
-    paper.lineHeight = e.target.value;
-    renderLastText(editor);
+  var addLetterControlListeners = function addLetterControlListeners(letterControls) {
+    Object.values(letterControls).forEach(function (input) {
+      function inputHandler(e) {
+        var entry = editor.getCurrentEntry();
+
+        if (entry) {
+          var key = input.dataset.key;
+          var val = e.target.value; // console.log(key, val);
+
+          entry.editStyle(input.dataset.key, val);
+          renderLastText(editor);
+        }
+      }
+
+      input.addEventListener('input', inputHandler);
+    });
+  };
+
+  function addTextControlListeners(textControls) {
+    var t_color = textControls.t_color;
+
+    function handleKeyDown(e) {
+      e.preventDefault();
+      editor.handleKeyInput(e.key);
+      paper.refreshCanvas();
+      updateLetterControls(letterControls);
+      renderLastText(editor);
+    }
+
+    function handleLineHeightRange(e) {
+      paper.lineHeight = e.target.value;
+      renderLastText(editor);
+    }
+
+    function handleLetterSpacingRange(e) {
+      paper.letterSpacing = e.target.value;
+      renderLastText(editor);
+    }
+
+    function handleFontScaleRange(e) {
+      paper.fontRatio = e.target.value;
+      renderLastText(editor);
+    }
+
+    function handleBrokenRange(e) {
+      paper.broken = e.target.value;
+      renderLastText(editor);
+    }
+
+    function handleOverwriteButton() {
+      editor.overwrite = !editor.overwrite;
+      renderLastText(editor);
+    }
+
+    function handleUndoButton() {
+      editor.undo();
+      var last = editor.getLastHistory(); // console.log(editor.history);
+      // console.log('last', last);
+
+      renderLastText(editor);
+    }
+
+    function handleRedoButton() {
+      editor.redo();
+      renderLastText(editor);
+    }
+
+    function handleTextColorInput(e) {
+      paper.fontColor = e.target.value;
+      console.log(e.target.value);
+      renderLastText(editor);
+    }
+
+    t_color.value = paper.fontColor;
+    t_color.addEventListener('input', handleTextColorInput); //redo this
+
+    document.getElementById('line-height').addEventListener('input', handleLineHeightRange);
+    document.getElementById('letter-spacing').addEventListener('input', handleLetterSpacingRange);
+    document.getElementById('font-scale').addEventListener('input', handleFontScaleRange);
+    document.getElementById('broken').addEventListener('input', handleBrokenRange);
+    document.getElementById('overwrite').addEventListener('click', handleOverwriteButton);
+    document.getElementById('undo').addEventListener('click', handleUndoButton);
+    document.getElementById('redo').addEventListener('click', handleRedoButton);
+    document.addEventListener('keydown', handleKeyDown);
   }
 
-  function handleLetterSpacingRange(e) {
-    paper.letterSpacing = e.target.value;
-    renderLastText(editor);
-  }
-
-  function handleFontScaleRange(e) {
-    paper.fontRatio = e.target.value;
-    renderLastText(editor);
-  }
-
-  function handleBrokenRange(e) {
-    paper.broken = e.target.value;
-    renderLastText(editor);
-  }
-
-  function handleOverwriteButton() {
-    editor.overwrite = !editor.overwrite;
-    renderLastText(editor);
-  }
-
-  function handleUndoButton() {
-    editor.undo();
-    var last = editor.getLastHistory(); // console.log(editor.history);
-    // console.log('last', last);
-
-    renderLastText(editor);
-  }
-
-  function handleRedoButton() {
-    editor.redo();
-    renderLastText(editor);
-  }
-
-  document.getElementById('line-height').addEventListener('input', handleLineHeightRange);
-  document.getElementById('letter-spacing').addEventListener('input', handleLetterSpacingRange);
-  document.getElementById('font-scale').addEventListener('input', handleFontScaleRange);
-  document.getElementById('broken').addEventListener('input', handleBrokenRange);
-  document.getElementById('overwrite').addEventListener('click', handleOverwriteButton);
-  document.getElementById('undo').addEventListener('click', handleUndoButton);
-  document.getElementById('redo').addEventListener('click', handleRedoButton);
-  document.addEventListener('keydown', handleKeyDown);
+  addTextControlListeners(textControls);
+  addLetterControlListeners(letterControls);
 }
-
-addTextControlListeners(DOMControls);
-addLetterControlListeners(DOMControls);
 },{"./styles.scss":"styles.scss","./src/editor":"src/editor.js","./src/paper":"src/paper.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';

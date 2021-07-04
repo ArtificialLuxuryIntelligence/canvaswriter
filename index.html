@@ -9,6 +9,16 @@
     , initial-scale=1.0"
     />
     <title>canvas writer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="app">
@@ -17,6 +27,8 @@
           <button id="overwrite">Overwrite</button>
           <button id="undo">Undo</button>
           <button id="redo">redo</button>
+
+          <label> Text colour <input id="text-color" type="color" /> </label>
 
           <label>
             Line height
@@ -36,7 +48,14 @@
 
           <label>
             Font scale
-            <input id="font-scale" type="range" min="0.5" max="4" step="0.01" />
+            <input
+              id="font-scale"
+              type="range"
+              min="0.5"
+              max="4"
+              step="0.01"
+              value="1"
+            />
           </label>
 
           <label>
@@ -46,6 +65,11 @@
         </div>
 
         <div class="letter-controls">
+          <label>
+            Letter colour
+            <input id="letter-color" data-key="color" type="color" />
+          </label>
+
           <label>
             X
             <input
@@ -87,6 +111,17 @@
               type="range"
               min="0.1"
               max="5"
+              step="0.05"
+            />
+          </label>
+          <label>
+            Opacity
+            <input
+              id="letter-o"
+              data-key="opacity"
+              type="range"
+              min="0.1"
+              max="1"
               step="0.05"
             />
           </label>

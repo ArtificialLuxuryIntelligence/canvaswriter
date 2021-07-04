@@ -11,7 +11,7 @@ export default class Editor {
     this.removedHistory = []; //undo functionality
     //options
     this.overwrite = false;
-    this.maxHistory = 10;
+    this.maxHistory = 100;
     this.init();
   }
 
@@ -34,12 +34,14 @@ export default class Editor {
     //TODO: set the cursor index in the Editor...
     let history = [...this.history];
 
-    if (history.length > 1) {
+    if (history.length >= 1) {
       let removed = history.pop();
+
       this.history = history;
 
       if (removed) {
         this.removedHistory.push(removed);
+        this.cursorIndex = removed.cursorIndex;
       }
     }
   }
@@ -47,9 +49,9 @@ export default class Editor {
     let removedHistory = [...this.removedHistory];
     let removed = removedHistory.pop();
     this.removedHistory = removedHistory;
-    console.log(removed);
     if (removed) {
       this.addToHistory(removed);
+      this.cursorIndex = removed.cursorIndex;
     }
   }
   getCurrentEntry() {
@@ -66,12 +68,16 @@ export default class Editor {
     let last = this.getLastHistory();
     let group = last.groups[index];
     let entry = group?.getLastEntry();
-    if (entry) {
-      if (!entry.styles) {
-        entry.setStyles(this.paper.getANStyles(entry.key));
-      }
-      // console.log(paper);
-    }
+
+    // if (entry) {
+    //   if (!entry.styles) {
+    //     entry.setStyles({
+    //       ...this.paper.getANStyles(entry.key),
+    //       color: this.paper.fontColor,
+    //     });
+    //   }
+    //   // console.log(paper);
+    // }
 
     return entry;
   }
@@ -160,6 +166,9 @@ export default class Editor {
 
     let entryGroup;
     let entry = new Entry(key, {});
+    if (this.paper) {
+      entry.setStyles(this.paper.createEntryStyles(entry));
+    }
 
     // Handle delete
     if (key === 'Backspace') {
@@ -320,8 +329,8 @@ class Entry {
     this.styles = styles;
   }
   editStyle(key, val) {
-    this.editedStyles = true;
     this.styles = { ...this.styles, [key]: val };
+    this.editedStyles = true;
   }
 }
 

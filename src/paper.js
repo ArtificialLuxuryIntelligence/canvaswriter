@@ -1,7 +1,7 @@
 // Render a history state of editor
 
 import { initAlphaNumStyles } from './alphaNumStyles';
-import { clamp } from './helpers';
+import { clamp, getRandomArbitrary, hex2rgba } from './helpers';
 
 const testStyles = { scale: 1.2, rotation: 20, x: 0.1, y: -0.2 };
 
@@ -25,7 +25,10 @@ export default class Paper {
     this._lineHeight = 1;
     this._letterSpacing = 0.5; //[0,1]
     this._fontRatio = 1;
-    this._broken = 0.5;
+    this._broken = 0.2;
+    this._fontColor = '#500000';
+
+    this.randomOpacity = true;
 
     //internals [use #?]
 
@@ -59,6 +62,10 @@ export default class Paper {
     return this._dimensions;
   }
 
+  get fontColor() {
+    return this._fontColor;
+  }
+
   /**
    * @param {number} val
    */
@@ -77,6 +84,11 @@ export default class Paper {
   set broken(val) {
     this._broken = val;
     this.#ANStyles = initAlphaNumStyles({ broken: this._broken });
+    this.refreshCanvas();
+  }
+
+  set fontColor(val) {
+    this._fontColor = val;
     this.refreshCanvas();
   }
 
@@ -150,7 +162,8 @@ export default class Paper {
 
                 c1,
                 c2,
-                entry.editedStyles ? entry.styles : null
+                entry.styles,
+                entry.editedStyles
               );
             } else if (entry.key === 'Enter') {
               i++;
@@ -200,7 +213,7 @@ export default class Paper {
   }
   refreshCanvas() {
     // recallibarate all variables and repaint
-    // if dimensions/lineheight/fontRatio changed
+    // called by most setters (like a react dep array kinda thing)
 
     this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
     this.canvas.width = this._dimensions.w;
@@ -227,15 +240,18 @@ export default class Paper {
 
   // ---End exposed methods --------------------------------------------
 
-  drawLetter(letter, x, y, styles) {
+  drawLetter(letter, x, y, styles, editedStyles) {
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
-    this.ctx.font = `${this.#fontSize}px monospace`;
+    // this.ctx.font = `${this.#fontSize}px JetBrains Mono`;
+    this.ctx.font = `${this.#fontSize}px Roboto Mono`;
+
+    this.ctx.fillStyle = this._fontColor;
 
     let letterStyles;
 
     let ANStyles = this.getANStyles(letter);
-    if (styles) {
+    if (editedStyles) {
       //custom styles
       letterStyles = styles;
     } else if (ANStyles) {
@@ -244,11 +260,24 @@ export default class Paper {
     }
 
     if (letterStyles) {
-      const { scale, x: posX, y: posY, rotation: rot } = letterStyles;
+      const {
+        scale,
+        x: posX,
+        y: posY,
+        rotation: rot,
+        color = this._fontColor,
+        opacity = styles.opacity,
+      } = letterStyles;
       let scaleX = scale;
       let scaleY = scale;
 
-      // this.ctx.translate(x, y);
+      //color
+      let col;
+      col = hex2rgba(color, opacity);
+
+      this.ctx.fillStyle = col;
+
+      //transforms
       this.ctx.setTransform(
         scaleX,
         0,
@@ -260,14 +289,28 @@ export default class Paper {
       this.ctx.rotate((rot * Math.PI) / 180);
       this.ctx.fillText(letter, 0, 0);
 
+      //undo transforms
       this.ctx.rotate((-rot * Math.PI) / 180);
       this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
-      // this.ctx.translate(-x, -y);
     } else {
       this.ctx.fillText(letter, x, y);
     }
 
     //restore (ctx.restore /save is more CPU intensive apparently)
+  }
+
+  createEntryStyles(entry) {
+    let a;
+    if (this.randomOpacity) {
+      a = getRandomArbitrary(0.5, 0.8);
+    } else {
+      a = 1;
+    }
+    return {
+      ...this.getANStyles(entry.key),
+      color: this.fontColor,
+      opacity: a,
+    };
   }
 
   // Debug
