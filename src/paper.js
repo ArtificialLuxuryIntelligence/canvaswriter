@@ -1,5 +1,9 @@
 // Render a history state of editor
 
+import { clamp } from './helpers';
+
+const testStyles = { scale: 1.5, rotation: 20, x: 2, y: 0 };
+
 export default class Paper {
   constructor(id) {
     this.canvas = document.getElementById(id);
@@ -10,7 +14,7 @@ export default class Paper {
     this._letterSpacing = 0.5; //[0,1]
 
     //hidden variables this.__blah to do
-    this.padding = { x: 0, y: 0 };
+    this.padding = { x: 0, y: 0 }; //maybe make accessible
     this.fontSize = 1;
     this.grid = {
       X: 1,
@@ -21,7 +25,7 @@ export default class Paper {
   }
 
   init() {
-    this.setDimensions(600, 400);
+    this.setDimensions(1200, 800);
     this.refreshCanvas();
     this.renderText(null, true);
     // this.refreshCanvas();
@@ -50,12 +54,29 @@ export default class Paper {
     this.refreshCanvas();
   }
 
-  drawLetter(letter, fontSize, x, y) {
+  drawLetter(letter, fontSize, x, y, styles) {
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
     this.ctx.font = `${fontSize}px monospace`;
+    if (styles) {
+      const { scale, x: posX, y: posY, rotation: rot } = styles;
+      let scaleX = scale;
+      let scaleY = scale;
 
-    this.ctx.fillText(letter, x, y);
+      // this.ctx.translate(x, y);
+      this.ctx.setTransform(scaleX, 0, 0, scaleY, x + posX, y + posY); // scale and translate in one call
+      this.ctx.rotate((rot * Math.PI) / 180);
+
+      this.ctx.fillText(letter, 0, 0);
+
+      this.ctx.rotate((-rot * Math.PI) / 180);
+      this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
+      // this.ctx.translate(-x, -y);
+    } else {
+      this.ctx.fillText(letter, x, y);
+    }
+
+    //restore (ctx.restore /save is more CPU intensive apparently)
   }
 
   renderText(historyText, overwrite = false) {
@@ -106,7 +127,13 @@ export default class Paper {
         if (entries && entries.length) {
           entries.forEach((entry) => {
             if (entry.key.length === 1) {
-              this.drawLetter(entry.key, lw, c1, c2);
+              this.drawLetter(
+                entry.key,
+                lw,
+                c1,
+                c2,
+                entry.key === 'a' ? testStyles : false
+              );
             } else if (entry.key === 'Enter') {
               i++;
               j = -1;
@@ -173,8 +200,21 @@ export default class Paper {
     this.canvas.height = this.dimensions.h;
 
     this.fontSize = (this._fontRatio * this.dimensions.h) / 10;
-    this.setPadding(this.dimensions.w / 10, this.fontSize);
-    this.setPadding(40, this.fontSize);
+    this.setPadding(this.fontSize, this.fontSize);
+
+    let clampedPaddingX = clamp(
+      this.fontSize / 2,
+      this.dimensions.w / 14,
+      this.dimensions.w / 10
+    );
+    console.log(
+      clampedPaddingX,
+      this.fontSize,
+      this.dimensions.w / 14,
+      this.dimensions.w / 10
+    );
+
+    this.setPadding(clampedPaddingX, this.fontSize);
 
     this.grid = {
       x:

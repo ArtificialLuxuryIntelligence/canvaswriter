@@ -9,8 +9,9 @@ let editor = new Editor();
 let paper = new Paper('paper');
 
 const renderLastText = (editor) => {
+  // console.log(editor);
   paper.refreshCanvas();
-  console.log(editor);
+
   let last = editor.getLastHistory();
   paper.renderText(last, editor.overwrite);
 };

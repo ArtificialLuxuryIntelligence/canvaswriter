@@ -18,4 +18,6 @@ function clone(instance) {
   );
 }
 
-export { clone };
+const clamp = (a,b,c) => Math.max(b,Math.min(c,a));
+
+export { clone, clamp };

@@ -196,6 +196,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.clone = clone;
+exports.clamp = void 0;
 
 /**
  * @function
@@ -210,6 +211,12 @@ function clone(instance) {
   Object.getPrototypeOf(instance)), // Prevent shallow copies of nested structures like arrays, etc
   JSON.parse(JSON.stringify(instance)));
 }
+
+var clamp = function clamp(a, b, c) {
+  return Math.max(b, Math.min(c, a));
+};
+
+exports.clamp = clamp;
 },{}],"node_modules/lodash.clonedeep/index.js":[function(require,module,exports) {
 var global = arguments[3];
 
@@ -2187,7 +2194,7 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "updateRemovedHistory",
     value: function updateRemovedHistory(key) {
-      // this.removedHistory = [];
+      // you can't redo if you have add new letters 
       if (this.overwrite) {
         if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Backspace') {
           return;
@@ -2630,13 +2637,21 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _helpers = require("./helpers");
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-// Render a history state of editor
+var testStyles = {
+  scale: 1.5,
+  rotation: 20,
+  x: 2,
+  y: 0
+};
+
 var Paper = /*#__PURE__*/function () {
   function Paper(id) {
     _classCallCheck(this, Paper);
@@ -2655,7 +2670,8 @@ var Paper = /*#__PURE__*/function () {
     this.padding = {
       x: 0,
       y: 0
-    };
+    }; //maybe make accessible
+
     this.fontSize = 1;
     this.grid = {
       X: 1,
@@ -2667,17 +2683,36 @@ var Paper = /*#__PURE__*/function () {
   _createClass(Paper, [{
     key: "init",
     value: function init() {
-      this.setDimensions(600, 400);
+      this.setDimensions(1200, 800);
       this.refreshCanvas();
       this.renderText(null, true); // this.refreshCanvas();
     }
   }, {
     key: "drawLetter",
-    value: function drawLetter(letter, fontSize, x, y) {
+    value: function drawLetter(letter, fontSize, x, y, styles) {
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
       this.ctx.font = "".concat(fontSize, "px monospace");
-      this.ctx.fillText(letter, x, y);
+
+      if (styles) {
+        var scale = styles.scale,
+            posX = styles.x,
+            posY = styles.y,
+            rot = styles.rotation;
+        var scaleX = scale;
+        var scaleY = scale; // this.ctx.translate(x, y);
+
+        this.ctx.setTransform(scaleX, 0, 0, scaleY, x + posX, y + posY); // scale and translate in one call
+
+        this.ctx.rotate(rot * Math.PI / 180);
+        this.ctx.fillText(letter, 0, 0);
+        this.ctx.rotate(-rot * Math.PI / 180);
+        this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
+        // this.ctx.translate(-x, -y);
+      } else {
+        this.ctx.fillText(letter, x, y);
+      } //restore (ctx.restore /save is more CPU intensive apparently)
+
     }
   }, {
     key: "renderText",
@@ -2732,7 +2767,7 @@ var Paper = /*#__PURE__*/function () {
           if (entries && entries.length) {
             entries.forEach(function (entry) {
               if (entry.key.length === 1) {
-                _this.drawLetter(entry.key, lw, c1, c2);
+                _this.drawLetter(entry.key, lw, c1, c2, entry.key === 'a' ? testStyles : false);
               } else if (entry.key === 'Enter') {
                 i++;
                 j = -1;
@@ -2817,8 +2852,10 @@ var Paper = /*#__PURE__*/function () {
       this.canvas.width = this.dimensions.w;
       this.canvas.height = this.dimensions.h;
       this.fontSize = this._fontRatio * this.dimensions.h / 10;
-      this.setPadding(this.dimensions.w / 10, this.fontSize);
-      this.setPadding(40, this.fontSize);
+      this.setPadding(this.fontSize, this.fontSize);
+      var clampedPaddingX = (0, _helpers.clamp)(this.fontSize / 2, this.dimensions.w / 14, this.dimensions.w / 10);
+      console.log(clampedPaddingX, this.fontSize, this.dimensions.w / 14, this.dimensions.w / 10);
+      this.setPadding(clampedPaddingX, this.fontSize);
       this.grid = {
         x: (this.dimensions.w - 2 * this.padding.x) / (this._letterSpacing * this.fontSize),
         y: this.dimensions.h / (this._lineHeight * this.fontSize)
@@ -2886,7 +2923,7 @@ var Paper = /*#__PURE__*/function () {
 }();
 
 exports.default = Paper;
-},{}],"index.js":[function(require,module,exports) {
+},{"./helpers":"src/helpers.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 require("./styles.scss");
@@ -2903,8 +2940,8 @@ var editor = new _editor.default();
 var paper = new _paper.default('paper');
 
 var renderLastText = function renderLastText(editor) {
+  // console.log(editor);
   paper.refreshCanvas();
-  console.log(editor);
   var last = editor.getLastHistory();
   paper.renderText(last, editor.overwrite);
 };

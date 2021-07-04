@@ -167,7 +167,8 @@ export default class Editor {
     }
   }
   updateRemovedHistory(key) {
-    // this.removedHistory = [];
+    // you can't redo if you have add new letters 
+
     if (this.overwrite) {
       if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Backspace') {
         return;
