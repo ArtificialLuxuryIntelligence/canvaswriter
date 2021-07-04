@@ -7,10 +7,10 @@ console.clear();
 // const controller = new AbortController(); //too new
 
 let paper = new Paper('paper');
-console.log('pp', paper);
 let editor = new Editor();
 editor.connect(paper);
 
+// TODO all controls in here (c,f, addTextConrolListeners)
 const DOMControls = {
   l_rotation_control: document.getElementById('letter-r'),
   l_x_control: document.getElementById('letter-x'),
@@ -51,7 +51,7 @@ const addLetterControlListeners = (DOMControls) => {
       if (entry) {
         let key = input.dataset.key;
         let val = e.target.value;
-        console.log(key, val);
+        // console.log(key, val);
         entry.editStyle(input.dataset.key, val);
         renderLastText(editor);
       }
@@ -98,8 +98,8 @@ function addTextControlListeners() {
   function handleUndoButton() {
     editor.undo();
     let last = editor.getLastHistory();
-    console.log(editor.history);
-    console.log('last', last);
+    // console.log(editor.history);
+    // console.log('last', last);
     renderLastText(editor);
   }
 

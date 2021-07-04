@@ -36,7 +36,6 @@ export default class Editor {
 
     if (history.length > 1) {
       let removed = history.pop();
-      console.log('removed', removed);
       this.history = history;
 
       if (removed) {

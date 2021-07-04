@@ -6,24 +6,28 @@ import { clamp } from './helpers';
 const testStyles = { scale: 1.2, rotation: 20, x: 0.1, y: -0.2 };
 
 export default class Paper {
+  // probably shouldn't mix _ and # but the _values are exposed thru getters...
+
+  #grid = {
+    X: 1,
+    y: 1,
+  };
+
+  #ANStyles = initAlphaNumStyles({ broken: this._broken });
+  #padding = { x: 0, y: 0 }; //maybe make accessible
+  #fontSize = 1;
+
   constructor(id) {
     this.canvas = document.getElementById(id);
     this.ctx = this.canvas.getContext('2d');
 
-    this.dimensions = { w: 300, h: 400 };
+    this._dimensions = { w: 300, h: 400 };
     this._lineHeight = 1;
     this._letterSpacing = 0.5; //[0,1]
     this._fontRatio = 1;
     this._broken = 0.5;
 
-    //internals
-    this.ANStyles = initAlphaNumStyles({ broken: this._broken });
-    this.padding = { x: 0, y: 0 }; //maybe make accessible
-    this.fontSize = 1;
-    this.grid = {
-      X: 1,
-      y: 1,
-    };
+    //internals [use #?]
 
     this.init();
   }
@@ -31,7 +35,7 @@ export default class Paper {
   init() {
     this.setDimensions(1200, 800);
     this.refreshCanvas();
-    this.ANStyles = initAlphaNumStyles({ broken: this._broken });
+    this.#ANStyles = initAlphaNumStyles({ broken: this._broken });
 
     this.renderText(null, true);
     // this.refreshCanvas();
@@ -51,6 +55,13 @@ export default class Paper {
     return this._broken;
   }
 
+  get dimensions() {
+    return this._dimensions;
+  }
+
+  /**
+   * @param {number} val
+   */
   set lineHeight(val) {
     this._lineHeight = val;
     this.refreshCanvas();
@@ -65,47 +76,62 @@ export default class Paper {
   }
   set broken(val) {
     this._broken = val;
-    this.ANStyles = initAlphaNumStyles({ broken: this._broken });
+    this.#ANStyles = initAlphaNumStyles({ broken: this._broken });
     this.refreshCanvas();
   }
+
+  getANStyles(key) {
+    return this.#ANStyles[key];
+  }
+  setDimensions(w, h) {
+    this._dimensions = { w, h };
+  }
+  setPadding(x, y) {
+    this.#padding = { x, y };
+  }
+
+  // set dimensions(val) {
+  //   this._dimensions = val;
+  //   this.refreshCanvas();
+  // }
 
   // ---End exposed variables
 
   // Exposed methods --------------------------------------------
 
   renderText(historyText, overwrite = false) {
-    let { w, h } = this.dimensions;
-    let width = w - this.padding.x * 2;
-    let height = h - this.padding.y * 2;
-    // let lw = width / this.grid.x;
-    let lw = this.fontSize;
+    let { w, h } = this._dimensions;
+    let width = w - this.#padding.x * 2;
+    let height = h - this.#padding.y * 2;
+    // let lw = width / this.#grid.x;
+    let lw = this.#fontSize;
 
     let idx = 0;
     let cursorNext = false;
     let cursorRendered = false;
 
     if (!historyText) {
-      let c1 = this.padding.x + (0 * width) / (this.grid.x - 1);
-      let c2 = this.padding.y + (0 * height) / (this.grid.y - 1);
-      this.drawLetter('_', lw, c1, c2);
+      let c1 = this.#padding.x + (0 * width) / (this.#grid.x - 1);
+      let c2 = this.#padding.y + (0 * height) / (this.#grid.y - 1);
+      this.drawLetter('_', c1, c2);
       return;
     }
 
     if (historyText.cursorIndex === null) {
-      let c1 = this.padding.x + (0 * width) / (this.grid.x - 1);
-      let c2 = this.padding.y + (0 * height) / (this.grid.y - 1);
-      this.drawLetter('_', lw, c1, c2);
+      let c1 = this.#padding.x + (0 * width) / (this.#grid.x - 1);
+      let c2 = this.#padding.y + (0 * height) / (this.#grid.y - 1);
+      this.drawLetter('_', c1, c2);
       cursorRendered = true;
     }
 
     let i, j;
 
-    for (i = 0; i < this.grid.y; i++) {
-      for (j = 0; j < this.grid.x - 1; j++) {
+    for (i = 0; i < this.#grid.y; i++) {
+      for (j = 0; j < this.#grid.x - 1; j++) {
         let group = historyText?.groups[idx];
 
-        let c1 = this.padding.x + (j * width) / (this.grid.x - 1);
-        let c2 = this.padding.y + (i * height) / (this.grid.y - 1);
+        let c1 = this.#padding.x + (j * width) / (this.#grid.x - 1);
+        let c2 = this.#padding.y + (i * height) / (this.#grid.y - 1);
 
         //debug
 
@@ -121,7 +147,7 @@ export default class Paper {
             if (entry.key.length === 1) {
               this.drawLetter(
                 entry.key,
-                lw,
+
                 c1,
                 c2,
                 entry.editedStyles ? entry.styles : null
@@ -133,13 +159,13 @@ export default class Paper {
           });
 
           if (cursorNext) {
-            this.drawLetter('_', lw, c1, c2);
+            this.drawLetter('_', c1, c2);
             cursorRendered = true;
             cursorNext = false;
           }
           if (group.cursor) {
             if (overwrite) {
-              this.drawLetter('_', lw, c1, c2);
+              this.drawLetter('_', c1, c2);
               cursorRendered = true;
             } else {
               //non-overwrite: render cursor at next positiondd
@@ -149,7 +175,7 @@ export default class Paper {
         }
 
         if (!group && !cursorRendered) {
-          this.drawLetter('_', lw, c1, c2);
+          this.drawLetter('_', c1, c2);
           cursorRendered = true;
 
           break;
@@ -160,51 +186,51 @@ export default class Paper {
       let group = historyText?.groups[idx];
 
       if (!group) {
-        // this.drawLetter('_', lw, c1, c2);
+        // this.drawLetter('_', c1, c2);
         break;
       }
     }
 
     // if (!cursorRendered) {
     //   // if()
-    //   let c1 = this.padding.x + (j * width) / (this.grid.x - 1);
-    //   let c2 = this.padding.y + (i * height) / (this.grid.y - 1);
-    //   this.drawLetter('_', lw, c1, c2);
+    //   let c1 = this.#padding.x + (j * width) / (this.#grid.x - 1);
+    //   let c2 = this.#padding.y + (i * height) / (this.#grid.y - 1);
+    //   this.drawLetter('_', c1, c2);
     // }
   }
   refreshCanvas() {
     // recallibarate all variables and repaint
     // if dimensions/lineheight/fontRatio changed
 
-    this.ctx.clearRect(0, 0, this.dimensions.width, this.dimensions.heighth);
-    this.canvas.width = this.dimensions.w;
-    this.canvas.height = this.dimensions.h;
+    this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+    this.canvas.width = this._dimensions.w;
+    this.canvas.height = this._dimensions.h;
 
-    this.fontSize = (this._fontRatio * this.dimensions.h) / 10;
-    this.setPadding(this.fontSize, this.fontSize);
+    this.#fontSize = (this._fontRatio * this._dimensions.h) / 10;
+    this.setPadding(this.#fontSize, this.#fontSize);
 
     let clampedPaddingX = clamp(
-      this.fontSize / 2,
-      this.dimensions.w / 14,
-      this.dimensions.w / 10
+      this.#fontSize / 2,
+      this._dimensions.w / 14,
+      this._dimensions.w / 10
     );
 
-    this.setPadding(clampedPaddingX, this.fontSize);
+    this.setPadding(clampedPaddingX, this.#fontSize);
 
-    this.grid = {
+    this.#grid = {
       x:
-        (this.dimensions.w - 2 * this.padding.x) /
-        (this._letterSpacing * this.fontSize),
-      y: this.dimensions.h / (this._lineHeight * this.fontSize),
+        (this._dimensions.w - 2 * this.#padding.x) /
+        (this._letterSpacing * this.#fontSize),
+      y: this._dimensions.h / (this._lineHeight * this.#fontSize),
     };
   }
 
   // ---End exposed methods --------------------------------------------
 
-  drawLetter(letter, fontSize, x, y, styles) {
+  drawLetter(letter, x, y, styles) {
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
-    this.ctx.font = `${fontSize}px monospace`;
+    this.ctx.font = `${this.#fontSize}px monospace`;
 
     let letterStyles;
 
@@ -228,11 +254,10 @@ export default class Paper {
         0,
         0,
         scaleY,
-        x + posX * fontSize,
-        y + posY * fontSize
+        x + posX * this.#fontSize,
+        y + posY * this.#fontSize
       ); // scale and translate in one call
       this.ctx.rotate((rot * Math.PI) / 180);
-
       this.ctx.fillText(letter, 0, 0);
 
       this.ctx.rotate((-rot * Math.PI) / 180);
@@ -245,34 +270,24 @@ export default class Paper {
     //restore (ctx.restore /save is more CPU intensive apparently)
   }
 
-  getANStyles(key) {
-    return this.ANStyles[key];
-  }
-  setDimensions(w, h) {
-    this.dimensions = { w, h };
-  }
-  setPadding(x, y) {
-    this.padding = { x, y };
-  }
-
   // Debug
   drawDots() {
-    let { w, h } = this.dimensions;
-    let width = w - this.padding.x * 2;
-    let height = h - this.padding.y * 2;
-    let lw = width / this.grid.x;
-    // let lh = height / this.grid.y;
+    let { w, h } = this._dimensions;
+    let width = w - this.#padding.x * 2;
+    let height = h - this.#padding.y * 2;
+    let lw = width / this.#grid.x;
+    // let lh = height / this.#grid.y;
 
-    for (let i = 0; i < this.grid.x; i++) {
-      for (let j = 0; j < this.grid.y; j++) {
-        let c1 = this.padding.x + (i * width) / (this.grid.x - 1);
-        let c2 = this.padding.y + (j * height) / (this.grid.y - 1);
+    for (let i = 0; i < this.#grid.x; i++) {
+      for (let j = 0; j < this.#grid.y; j++) {
+        let c1 = this.#padding.x + (i * width) / (this.#grid.x - 1);
+        let c2 = this.#padding.y + (j * height) / (this.#grid.y - 1);
 
         if (i === 5 && j === 3) {
-          this.drawLetter('l', lw, c1, c2);
+          this.drawLetter('l', c1, c2);
         }
         if (i === 6 && j === 3) {
-          this.drawLetter('y', lw, c1, c2);
+          this.drawLetter('y', c1, c2);
         }
         this.ctx.beginPath();
         this.ctx.arc(c1, c2, lw / 2, 0, 2 * Math.PI);

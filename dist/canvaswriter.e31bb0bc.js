@@ -2045,7 +2045,6 @@ var Editor = /*#__PURE__*/function () {
 
       if (history.length > 1) {
         var removed = history.pop();
-        console.log('removed', removed);
         this.history = history;
 
         if (removed) {
@@ -2782,6 +2781,10 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+
+function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to set private field on non-instance"); } if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } return value; }
+
 var testStyles = {
   scale: 1.2,
   rotation: 20,
@@ -2789,13 +2792,51 @@ var testStyles = {
   y: -0.2
 };
 
+var _grid = new WeakMap();
+
+var _ANStyles = new WeakMap();
+
+var _padding = new WeakMap();
+
+var _fontSize = new WeakMap();
+
 var Paper = /*#__PURE__*/function () {
+  // probably shouldn't mix _ and # but the _values are exposed thru getters...
+  //maybe make accessible
   function Paper(id) {
     _classCallCheck(this, Paper);
 
+    _grid.set(this, {
+      writable: true,
+      value: {
+        X: 1,
+        y: 1
+      }
+    });
+
+    _ANStyles.set(this, {
+      writable: true,
+      value: (0, _alphaNumStyles.initAlphaNumStyles)({
+        broken: this._broken
+      })
+    });
+
+    _padding.set(this, {
+      writable: true,
+      value: {
+        x: 0,
+        y: 0
+      }
+    });
+
+    _fontSize.set(this, {
+      writable: true,
+      value: 1
+    });
+
     this.canvas = document.getElementById(id);
     this.ctx = this.canvas.getContext('2d');
-    this.dimensions = {
+    this._dimensions = {
       w: 300,
       h: 400
     };
@@ -2803,21 +2844,8 @@ var Paper = /*#__PURE__*/function () {
     this._letterSpacing = 0.5; //[0,1]
 
     this._fontRatio = 1;
-    this._broken = 0.5; //internals
+    this._broken = 0.5; //internals [use #?]
 
-    this.ANStyles = (0, _alphaNumStyles.initAlphaNumStyles)({
-      broken: this._broken
-    });
-    this.padding = {
-      x: 0,
-      y: 0
-    }; //maybe make accessible
-
-    this.fontSize = 1;
-    this.grid = {
-      X: 1,
-      y: 1
-    };
     this.init();
   }
 
@@ -2826,54 +2854,82 @@ var Paper = /*#__PURE__*/function () {
     value: function init() {
       this.setDimensions(1200, 800);
       this.refreshCanvas();
-      this.ANStyles = (0, _alphaNumStyles.initAlphaNumStyles)({
+
+      _classPrivateFieldSet(this, _ANStyles, (0, _alphaNumStyles.initAlphaNumStyles)({
         broken: this._broken
-      });
+      }));
+
       this.renderText(null, true); // this.refreshCanvas();
     } // Exposed variables (controls) --------------------------------------------
 
   }, {
-    key: "renderText",
+    key: "getANStyles",
+    value: function getANStyles(key) {
+      return _classPrivateFieldGet(this, _ANStyles)[key];
+    }
+  }, {
+    key: "setDimensions",
+    value: function setDimensions(w, h) {
+      this._dimensions = {
+        w: w,
+        h: h
+      };
+    }
+  }, {
+    key: "setPadding",
+    value: function setPadding(x, y) {
+      _classPrivateFieldSet(this, _padding, {
+        x: x,
+        y: y
+      });
+    } // set dimensions(val) {
+    //   this._dimensions = val;
+    //   this.refreshCanvas();
+    // }
     // ---End exposed variables
     // Exposed methods --------------------------------------------
+
+  }, {
+    key: "renderText",
     value: function renderText(historyText) {
       var _this = this;
 
       var overwrite = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      var _this$dimensions = this.dimensions,
-          w = _this$dimensions.w,
-          h = _this$dimensions.h;
-      var width = w - this.padding.x * 2;
-      var height = h - this.padding.y * 2; // let lw = width / this.grid.x;
+      var _this$_dimensions = this._dimensions,
+          w = _this$_dimensions.w,
+          h = _this$_dimensions.h;
+      var width = w - _classPrivateFieldGet(this, _padding).x * 2;
+      var height = h - _classPrivateFieldGet(this, _padding).y * 2; // let lw = width / this.#grid.x;
 
-      var lw = this.fontSize;
+      var lw = _classPrivateFieldGet(this, _fontSize);
+
       var idx = 0;
       var cursorNext = false;
       var cursorRendered = false;
 
       if (!historyText) {
-        var c1 = this.padding.x + 0 * width / (this.grid.x - 1);
-        var c2 = this.padding.y + 0 * height / (this.grid.y - 1);
-        this.drawLetter('_', lw, c1, c2);
+        var c1 = _classPrivateFieldGet(this, _padding).x + 0 * width / (_classPrivateFieldGet(this, _grid).x - 1);
+        var c2 = _classPrivateFieldGet(this, _padding).y + 0 * height / (_classPrivateFieldGet(this, _grid).y - 1);
+        this.drawLetter('_', c1, c2);
         return;
       }
 
       if (historyText.cursorIndex === null) {
-        var _c = this.padding.x + 0 * width / (this.grid.x - 1);
+        var _c = _classPrivateFieldGet(this, _padding).x + 0 * width / (_classPrivateFieldGet(this, _grid).x - 1);
 
-        var _c2 = this.padding.y + 0 * height / (this.grid.y - 1);
+        var _c2 = _classPrivateFieldGet(this, _padding).y + 0 * height / (_classPrivateFieldGet(this, _grid).y - 1);
 
-        this.drawLetter('_', lw, _c, _c2);
+        this.drawLetter('_', _c, _c2);
         cursorRendered = true;
       }
 
       var i, j;
 
-      for (i = 0; i < this.grid.y; i++) {
+      for (i = 0; i < _classPrivateFieldGet(this, _grid).y; i++) {
         var _loop = function _loop() {
           var group = historyText === null || historyText === void 0 ? void 0 : historyText.groups[idx];
-          var c1 = _this.padding.x + j * width / (_this.grid.x - 1);
-          var c2 = _this.padding.y + i * height / (_this.grid.y - 1); //debug
+          var c1 = _classPrivateFieldGet(_this, _padding).x + j * width / (_classPrivateFieldGet(_this, _grid).x - 1);
+          var c2 = _classPrivateFieldGet(_this, _padding).y + i * height / (_classPrivateFieldGet(_this, _grid).y - 1); //debug
           // this.ctx.beginPath();
           // this.ctx.arc(c1, c2, 20 / 2, 0, 2 * Math.PI);
           // this.ctx.stroke();
@@ -2884,7 +2940,7 @@ var Paper = /*#__PURE__*/function () {
           if (entries && entries.length) {
             entries.forEach(function (entry) {
               if (entry.key.length === 1) {
-                _this.drawLetter(entry.key, lw, c1, c2, entry.editedStyles ? entry.styles : null);
+                _this.drawLetter(entry.key, c1, c2, entry.editedStyles ? entry.styles : null);
               } else if (entry.key === 'Enter') {
                 i++;
                 j = -1;
@@ -2892,7 +2948,7 @@ var Paper = /*#__PURE__*/function () {
             });
 
             if (cursorNext) {
-              _this.drawLetter('_', lw, c1, c2);
+              _this.drawLetter('_', c1, c2);
 
               cursorRendered = true;
               cursorNext = false;
@@ -2900,7 +2956,7 @@ var Paper = /*#__PURE__*/function () {
 
             if (group.cursor) {
               if (overwrite) {
-                _this.drawLetter('_', lw, c1, c2);
+                _this.drawLetter('_', c1, c2);
 
                 cursorRendered = true;
               } else {
@@ -2911,7 +2967,7 @@ var Paper = /*#__PURE__*/function () {
           }
 
           if (!group && !cursorRendered) {
-            _this.drawLetter('_', lw, c1, c2);
+            _this.drawLetter('_', c1, c2);
 
             cursorRendered = true;
             return "break";
@@ -2920,7 +2976,7 @@ var Paper = /*#__PURE__*/function () {
           idx++;
         };
 
-        for (j = 0; j < this.grid.x - 1; j++) {
+        for (j = 0; j < _classPrivateFieldGet(this, _grid).x - 1; j++) {
           var _ret = _loop();
 
           if (_ret === "break") break;
@@ -2929,14 +2985,14 @@ var Paper = /*#__PURE__*/function () {
         var group = historyText === null || historyText === void 0 ? void 0 : historyText.groups[idx];
 
         if (!group) {
-          // this.drawLetter('_', lw, c1, c2);
+          // this.drawLetter('_', c1, c2);
           break;
         }
       } // if (!cursorRendered) {
       //   // if()
-      //   let c1 = this.padding.x + (j * width) / (this.grid.x - 1);
-      //   let c2 = this.padding.y + (i * height) / (this.grid.y - 1);
-      //   this.drawLetter('_', lw, c1, c2);
+      //   let c1 = this.#padding.x + (j * width) / (this.#grid.x - 1);
+      //   let c2 = this.#padding.y + (i * height) / (this.#grid.y - 1);
+      //   this.drawLetter('_', c1, c2);
       // }
 
     }
@@ -2945,25 +3001,28 @@ var Paper = /*#__PURE__*/function () {
     value: function refreshCanvas() {
       // recallibarate all variables and repaint
       // if dimensions/lineheight/fontRatio changed
-      this.ctx.clearRect(0, 0, this.dimensions.width, this.dimensions.heighth);
-      this.canvas.width = this.dimensions.w;
-      this.canvas.height = this.dimensions.h;
-      this.fontSize = this._fontRatio * this.dimensions.h / 10;
-      this.setPadding(this.fontSize, this.fontSize);
-      var clampedPaddingX = (0, _helpers.clamp)(this.fontSize / 2, this.dimensions.w / 14, this.dimensions.w / 10);
-      this.setPadding(clampedPaddingX, this.fontSize);
-      this.grid = {
-        x: (this.dimensions.w - 2 * this.padding.x) / (this._letterSpacing * this.fontSize),
-        y: this.dimensions.h / (this._lineHeight * this.fontSize)
-      };
+      this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+      this.canvas.width = this._dimensions.w;
+      this.canvas.height = this._dimensions.h;
+
+      _classPrivateFieldSet(this, _fontSize, this._fontRatio * this._dimensions.h / 10);
+
+      this.setPadding(_classPrivateFieldGet(this, _fontSize), _classPrivateFieldGet(this, _fontSize));
+      var clampedPaddingX = (0, _helpers.clamp)(_classPrivateFieldGet(this, _fontSize) / 2, this._dimensions.w / 14, this._dimensions.w / 10);
+      this.setPadding(clampedPaddingX, _classPrivateFieldGet(this, _fontSize));
+
+      _classPrivateFieldSet(this, _grid, {
+        x: (this._dimensions.w - 2 * _classPrivateFieldGet(this, _padding).x) / (this._letterSpacing * _classPrivateFieldGet(this, _fontSize)),
+        y: this._dimensions.h / (this._lineHeight * _classPrivateFieldGet(this, _fontSize))
+      });
     } // ---End exposed methods --------------------------------------------
 
   }, {
     key: "drawLetter",
-    value: function drawLetter(letter, fontSize, x, y, styles) {
+    value: function drawLetter(letter, x, y, styles) {
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
-      this.ctx.font = "".concat(fontSize, "px monospace");
+      this.ctx.font = "".concat(_classPrivateFieldGet(this, _fontSize), "px monospace");
       var letterStyles;
       var ANStyles = this.getANStyles(letter);
 
@@ -2984,7 +3043,7 @@ var Paper = /*#__PURE__*/function () {
         var scaleX = scale;
         var scaleY = scale; // this.ctx.translate(x, y);
 
-        this.ctx.setTransform(scaleX, 0, 0, scaleY, x + posX * fontSize, y + posY * fontSize); // scale and translate in one call
+        this.ctx.setTransform(scaleX, 0, 0, scaleY, x + posX * _classPrivateFieldGet(this, _fontSize), y + posY * _classPrivateFieldGet(this, _fontSize)); // scale and translate in one call
 
         this.ctx.rotate(rot * Math.PI / 180);
         this.ctx.fillText(letter, 0, 0);
@@ -2995,50 +3054,31 @@ var Paper = /*#__PURE__*/function () {
         this.ctx.fillText(letter, x, y);
       } //restore (ctx.restore /save is more CPU intensive apparently)
 
-    }
-  }, {
-    key: "getANStyles",
-    value: function getANStyles(key) {
-      return this.ANStyles[key];
-    }
-  }, {
-    key: "setDimensions",
-    value: function setDimensions(w, h) {
-      this.dimensions = {
-        w: w,
-        h: h
-      };
-    }
-  }, {
-    key: "setPadding",
-    value: function setPadding(x, y) {
-      this.padding = {
-        x: x,
-        y: y
-      };
     } // Debug
 
   }, {
     key: "drawDots",
     value: function drawDots() {
-      var _this$dimensions2 = this.dimensions,
-          w = _this$dimensions2.w,
-          h = _this$dimensions2.h;
-      var width = w - this.padding.x * 2;
-      var height = h - this.padding.y * 2;
-      var lw = width / this.grid.x; // let lh = height / this.grid.y;
+      var _this$_dimensions2 = this._dimensions,
+          w = _this$_dimensions2.w,
+          h = _this$_dimensions2.h;
+      var width = w - _classPrivateFieldGet(this, _padding).x * 2;
+      var height = h - _classPrivateFieldGet(this, _padding).y * 2;
 
-      for (var i = 0; i < this.grid.x; i++) {
-        for (var j = 0; j < this.grid.y; j++) {
-          var c1 = this.padding.x + i * width / (this.grid.x - 1);
-          var c2 = this.padding.y + j * height / (this.grid.y - 1);
+      var lw = width / _classPrivateFieldGet(this, _grid).x; // let lh = height / this.#grid.y;
+
+
+      for (var i = 0; i < _classPrivateFieldGet(this, _grid).x; i++) {
+        for (var j = 0; j < _classPrivateFieldGet(this, _grid).y; j++) {
+          var c1 = _classPrivateFieldGet(this, _padding).x + i * width / (_classPrivateFieldGet(this, _grid).x - 1);
+          var c2 = _classPrivateFieldGet(this, _padding).y + j * height / (_classPrivateFieldGet(this, _grid).y - 1);
 
           if (i === 5 && j === 3) {
-            this.drawLetter('l', lw, c1, c2);
+            this.drawLetter('l', c1, c2);
           }
 
           if (i === 6 && j === 3) {
-            this.drawLetter('y', lw, c1, c2);
+            this.drawLetter('y', c1, c2);
           }
 
           this.ctx.beginPath();
@@ -3052,6 +3092,10 @@ var Paper = /*#__PURE__*/function () {
     get: function get() {
       return this._lineHeight;
     },
+
+    /**
+     * @param {number} val
+     */
     set: function set(val) {
       this._lineHeight = val;
       this.refreshCanvas();
@@ -3081,10 +3125,17 @@ var Paper = /*#__PURE__*/function () {
     },
     set: function set(val) {
       this._broken = val;
-      this.ANStyles = (0, _alphaNumStyles.initAlphaNumStyles)({
+
+      _classPrivateFieldSet(this, _ANStyles, (0, _alphaNumStyles.initAlphaNumStyles)({
         broken: this._broken
-      });
+      }));
+
       this.refreshCanvas();
+    }
+  }, {
+    key: "dimensions",
+    get: function get() {
+      return this._dimensions;
     }
   }]);
 
@@ -3106,9 +3157,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 console.clear(); // const controller = new AbortController(); //too new
 
 var paper = new _paper.default('paper');
-console.log('pp', paper);
 var editor = new _editor.default();
-editor.connect(paper);
+editor.connect(paper); // TODO all controls in here (c,f, addTextConrolListeners)
+
 var DOMControls = {
   l_rotation_control: document.getElementById('letter-r'),
   l_x_control: document.getElementById('letter-x'),
@@ -3147,8 +3198,8 @@ var addLetterControlListeners = function addLetterControlListeners(DOMControls) 
 
       if (entry) {
         var key = input.dataset.key;
-        var val = e.target.value;
-        console.log(key, val);
+        var val = e.target.value; // console.log(key, val);
+
         entry.editStyle(input.dataset.key, val);
         renderLastText(editor);
       }
@@ -3195,9 +3246,9 @@ function addTextControlListeners() {
 
   function handleUndoButton() {
     editor.undo();
-    var last = editor.getLastHistory();
-    console.log(editor.history);
-    console.log('last', last);
+    var last = editor.getLastHistory(); // console.log(editor.history);
+    // console.log('last', last);
+
     renderLastText(editor);
   }
 
