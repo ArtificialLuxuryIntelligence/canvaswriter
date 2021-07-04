@@ -189,7 +189,7 @@ var reloadCSS = require('_css_loader');
 
 module.hot.dispose(reloadCSS);
 module.hot.accept(reloadCSS);
-},{"_css_loader":"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/css-loader.js"}],"src/helpers.js":[function(require,module,exports) {
+},{"_css_loader":"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/css-loader.js"}],"src/CanvasWriter/helpers.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1975,7 +1975,7 @@ function stubFalse() {
 
 module.exports = cloneDeep;
 
-},{}],"src/Editor.js":[function(require,module,exports) {
+},{}],"src/CanvasWriter/Editor.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2713,7 +2713,7 @@ var initHist = {
   }],
   cursorMovement: false
 };
-},{"./helpers":"src/helpers.js","lodash.clonedeep":"node_modules/lodash.clonedeep/index.js"}],"src/alphaNumStyles.js":[function(require,module,exports) {
+},{"./helpers":"src/CanvasWriter/helpers.js","lodash.clonedeep":"node_modules/lodash.clonedeep/index.js"}],"src/CanvasWriter/alphaNumStyles.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2778,7 +2778,7 @@ var initAlphaNumStyles = function initAlphaNumStyles() {
 };
 
 exports.initAlphaNumStyles = initAlphaNumStyles;
-},{"./helpers":"src/helpers.js"}],"src/Paper.js":[function(require,module,exports) {
+},{"./helpers":"src/CanvasWriter/helpers.js"}],"src/CanvasWriter/Paper.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3203,7 +3203,7 @@ var Paper = /*#__PURE__*/function () {
 }();
 
 exports.default = Paper;
-},{"./alphaNumStyles":"src/alphaNumStyles.js","./helpers":"src/helpers.js"}],"src/CanvasWriter.js":[function(require,module,exports) {
+},{"./alphaNumStyles":"src/CanvasWriter/alphaNumStyles.js","./helpers":"src/CanvasWriter/helpers.js"}],"src/CanvasWriter/CanvasWriter.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3444,7 +3444,37 @@ var CanvasWriter = /*#__PURE__*/function () {
 }();
 
 exports.default = CanvasWriter;
-},{"./Editor":"src/Editor.js","./Paper":"src/Paper.js"}],"index.js":[function(require,module,exports) {
+},{"./Editor":"src/CanvasWriter/Editor.js","./Paper":"src/CanvasWriter/Paper.js"}],"src/CanvasWriter/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+Object.defineProperty(exports, "Editor", {
+  enumerable: true,
+  get: function () {
+    return _Editor.default;
+  }
+});
+Object.defineProperty(exports, "Paper", {
+  enumerable: true,
+  get: function () {
+    return _Paper.default;
+  }
+});
+exports.default = void 0;
+
+var _CanvasWriter = _interopRequireDefault(require("./CanvasWriter"));
+
+var _Editor = _interopRequireDefault(require("./Editor"));
+
+var _Paper = _interopRequireDefault(require("./Paper"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var _default = _CanvasWriter.default;
+exports.default = _default;
+},{"./CanvasWriter":"src/CanvasWriter/CanvasWriter.js","./Editor":"src/CanvasWriter/Editor.js","./Paper":"src/CanvasWriter/Paper.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 require("./styles.scss");
@@ -3483,7 +3513,7 @@ function main() {
 }
 
 main();
-},{"./styles.scss":"styles.scss","./src/CanvasWriter":"src/CanvasWriter.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./styles.scss":"styles.scss","./src/CanvasWriter":"src/CanvasWriter/index.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3511,7 +3541,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "33715" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "41149" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
