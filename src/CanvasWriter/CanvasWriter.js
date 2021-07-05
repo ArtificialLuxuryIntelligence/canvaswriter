@@ -34,7 +34,9 @@ export default class CanvasWriter {
       l_color,
       l_opacity,
       t_color,
-      t_page_color,
+      p_color,
+      p_width,
+      p_height,
       t_line_height,
       t_letter_spacing,
       t_font_scale,
@@ -55,7 +57,9 @@ export default class CanvasWriter {
     };
     const textControls = {
       t_color,
-      t_page_color,
+      p_color,
+      p_width,
+      p_height,
       t_line_height,
       t_letter_spacing,
       t_font_scale,
@@ -84,8 +88,10 @@ export default class CanvasWriter {
     };
     const addTextControlListeners = (textControls) => {
       const {
+        p_color,
+        p_width,
+        p_height,
         t_color,
-        t_page_color,
         t_line_height,
         t_letter_spacing,
         t_font_scale,
@@ -97,6 +103,7 @@ export default class CanvasWriter {
       } = textControls;
 
       const handleKeyDown = (e) => {
+        this.cancelAnimation && this.cancelAnimation(); //this is from GIFWriter class...
         e.preventDefault();
         this.editor.handleKeyInput(e.key);
         // this.paper.refreshCanvas();
@@ -144,10 +151,30 @@ export default class CanvasWriter {
         this.paper.pageColor = e.target.value;
         this.renderLastText();
       };
+      const handlePageWidthRange = (e) => {
+        this.paper.pageWidth = e.target.value;
+        this.paper.setDimensions(
+          Number(e.target.value),
+          this.paper.dimensions.h
+        );
+        this.renderLastText();
+      };
+
+      const handlePageHeightRange = (e) => {
+        console.log('han');
+        this.paper.setDimensions(
+          this.paper.dimensions.w,
+          Number(e.target.value)
+        );
+
+        this.renderLastText();
+      };
 
       //Add listeners
+      p_color?.addEventListener('input', handlePageColorInput);
+      p_width?.addEventListener('input', handlePageWidthRange);
+      p_height?.addEventListener('input', handlePageHeightRange);
       t_color?.addEventListener('input', handleTextColorInput);
-      t_page_color?.addEventListener('input', handlePageColorInput);
       t_line_height?.addEventListener('input', handleLineHeightRange);
       t_letter_spacing?.addEventListener('input', handleLetterSpacingRange);
       t_font_scale?.addEventListener('input', handleFontScaleRange);
@@ -158,10 +185,12 @@ export default class CanvasWriter {
       t_key?.addEventListener('keydown', handleKeyDown);
     };
     const syncInitial = (DOMControls) => {
-      const { t_color, t_page_color } = DOMControls;
+      const { t_color, p_color, p_width, p_height } = DOMControls;
       //   console.log('tc', t_color);
       t_color && (t_color.value = this.paper.fontColor);
-      t_page_color && (t_page_color.value = this.paper.pageColor);
+      p_color && (p_color.value = this.paper.pageColor);
+      p_width && (p_width.value = this.paper.dimensions.w);
+      p_height && (p_height.value = this.paper.dimensions.h);
     };
 
     addTextControlListeners(textControls);

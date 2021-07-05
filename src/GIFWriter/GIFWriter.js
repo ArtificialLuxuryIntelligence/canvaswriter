@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash.clonedeep';
 import CanvasWriter from '../CanvasWriter';
 import { getRandomInt } from '../CanvasWriter/helpers';
 import GIF from '../gif.js/gif';
@@ -29,24 +30,24 @@ export default class GIFWriter extends CanvasWriter {
     this.timer = null;
     this.animationSpeed = 0.1;
     this.startIndex = 0;
+    this.maxStartIndex = null;
     this.init_gifwriter();
   }
-  //blah super blah
-  //second canvas here (not in paper class)
 
-  //spread into same array in constructor?
   //more dom nodes :
-  // - animationstart
-  // - speed
-  // - etc (see original)
-  // - output img/link?
+
+  // - output img/link /container < yeah! container to spit out results into (prepend?)
 
   // onRecorded // onSaved callbacks [probs used to update UI]
 
-  animate = (onAnimationEnd, onFrame) => {
+  cancelAnimation() {
+    clearTimeout(this.timer);
+  }
+
+  //animates full history (from startIndex)
+  animate(onAnimationEnd, onFrame) {
     let idx = this.startIndex;
     let history = this.editor.history;
-    console.log(history);
 
     //set letters visible at random intervals for natural typing effect
     const type = () => {
@@ -72,9 +73,83 @@ export default class GIFWriter extends CanvasWriter {
       }
     };
     type();
-  };
+  }
 
-  record() {
+  //animates last item (from start  -no option for otherwise yet)
+  animateCurrent(onAnimationEnd, onFrame) {
+    // let idx = this.startIndex;
+    let groupIndex = 0;
+    let entryIndex = 0;
+
+    let text = this.editor.getLastHistory();
+    console.log('text', text);
+    let overwrite = text.overwrite;
+
+    const getNextState = (text, groupIndex, entryIndex) => {
+      if (typeof groupIndex === 'boolean') {
+        //it works..
+        return [false];
+      }
+      console.log(groupIndex, entryIndex);
+      let newText = cloneDeep(text);
+
+      let nextGroupIndex = groupIndex;
+      let nextEntryIndex = entryIndex;
+      let group = text.groups[groupIndex];
+      let entries = group.entries;
+
+      let newGroups = cloneDeep(text.groups.slice(0, groupIndex + 1));
+      let newEntries = cloneDeep(
+        text.groups[groupIndex].entries.slice(0, entryIndex + 1)
+      );
+      newText.groups = newGroups;
+      newText.groups[groupIndex].entries = newEntries;
+
+      if (entryIndex + 1 < entries.length) {
+        nextEntryIndex = entryIndex + 1;
+        nextGroupIndex = groupIndex;
+      } else if (groupIndex + 1 < text.groups.length) {
+        nextEntryIndex = 0;
+        nextGroupIndex = groupIndex + 1;
+      } else {
+        nextGroupIndex = false;
+        nextEntryIndex = false;
+      }
+
+      return [newText, nextGroupIndex, nextEntryIndex];
+    };
+
+    //set letters visible at random intervals for natural typing effect
+    const type = () => {
+      clearTimeout(this.timer);
+      let speed = this.animationSpeed * 1000;
+      let variance = this.animationSpeed * 500;
+      let interval = getRandomInt(speed - variance, speed + variance);
+      let next = getNextState(text, groupIndex, entryIndex);
+      let [nextText, nextGroupIndex, nextEntryIndex] = next;
+
+      if (nextText) {
+        this.timer = setTimeout(() => {
+          groupIndex = nextGroupIndex;
+          entryIndex = nextEntryIndex;
+
+          this.paper.refreshCanvas();
+          this.paper.renderText(nextText, overwrite);
+          onFrame && onFrame();
+
+          type();
+        }, interval);
+      } else {
+        clearTimeout(this.timer);
+        onAnimationEnd && onAnimationEnd();
+
+        return;
+      }
+    };
+    type();
+  }
+
+  recordVideo() {
     const chunks = []; // here we will store our recorded media chunks (Blobs)
     const stream = this.DOMControls.canvas.captureStream(); // grab our canvas MediaStream
     const rec = new MediaRecorder(stream); // init the recorder
@@ -99,8 +174,8 @@ export default class GIFWriter extends CanvasWriter {
 
   recordGif() {
     console.log('recording gif');
-      // https://github.com/jnordberg/gif.js/
-      //see dithering / quality 
+    // https://github.com/jnordberg/gif.js/
+    //see dithering / quality
     let gif = new GIF({
       workers: 4,
       workerScript: '/gif.js/gif.worker.js',
@@ -119,7 +194,6 @@ export default class GIFWriter extends CanvasWriter {
     };
 
     const onFrame = () => {
-    
       gif.addFrame(this.paper.ctx, { copy: true, delay: 200 });
     };
 
@@ -133,23 +207,34 @@ export default class GIFWriter extends CanvasWriter {
 
   init_gifwriter() {
     this.addGifControlEventListeners(this.DOMControls);
+    this.maxStartIndex = this.editor.history.length;
+
+    // //method overwrites
+
+    // const addToHistory = (historyItem) => {
+    //   if (this.history.length === this.maxHistory) {
+    //     this.history.splice(0, 1);
+    //   }
+    //   this.history.push(historyItem);
+
+    //   //addition:
+    //   this.maxStartIndex = this.history.length;
+    //   console.log(this.maxStartIndex);
+    // };
   }
 
   addGifControlEventListeners(DOMControls) {
     const { a_start_idx, a_start, a_speed, s_record, s_image, s_gif } =
       DOMControls; //etc etc/
 
-    const syncInitial = () => {
-      a_start_idx && (a_start_idx.value = this.startIndex);
-      a_speed && (a_speed.value = this.animationSpeed);
-    };
-
     const addControlListeners = () => {
       const handleStartAnimation = (e) => {
-        this.animate();
+        // this.animate();
+        this.animateCurrent();
       };
       const handleStartIndexRange = (e) => {
         this.startIndex = e.target.value;
+        a_start_idx.max = String(this.editor.history.length - 1);
         this.animate();
       };
       const handleAnimationSpeedRange = (e) => {
@@ -157,7 +242,7 @@ export default class GIFWriter extends CanvasWriter {
         this.animate();
       };
       const handleStartRecordVideo = (e) => {
-        this.record();
+        this.recordVideo();
       };
       const handleStartRecordGif = (e) => {
         this.recordGif();
@@ -175,6 +260,10 @@ export default class GIFWriter extends CanvasWriter {
       s_record?.addEventListener('click', handleStartRecordVideo);
       s_image?.addEventListener('click', handleSaveImage);
       s_gif?.addEventListener('click', handleStartRecordGif);
+    };
+    const syncInitial = () => {
+      a_start_idx && (a_start_idx.value = this.startIndex);
+      a_speed && (a_speed.value = this.animationSpeed);
     };
 
     addControlListeners();

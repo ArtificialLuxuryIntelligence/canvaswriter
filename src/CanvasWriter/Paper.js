@@ -24,13 +24,13 @@ export default class Paper {
     this._letterSpacing = presets?.letterSpacing || 0.5; //[0,1]
     this._fontRatio = presets?.fontRatio || 1;
     this._broken = presets?.broken || 0.2;
-    this._fontColor = presets?.fontColor || '#500000';
+    this._fontColor = presets?.fontColor || '#121212';
 
     this.randomOpacity =
       typeof presets?.randomOpacity === 'boolean'
         ? presets.randomOpacity
         : true; //can't use same method as others with booleans
-    this.pageColor = presets?.pageColor || '#ffffff';
+    this.pageColor = presets?.pageColor || '#f5f5f5';
     this.init();
   }
 
@@ -251,7 +251,6 @@ export default class Paper {
 
     // this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
     this.ctx.fillStyle = this.pageColor;
-    console.log('refresing');
     this.ctx.fillRect(0, 0, this._dimensions.w, this._dimensions.h);
   }
 
@@ -317,7 +316,7 @@ export default class Paper {
   createEntryStyles(entry) {
     let a;
     if (this.randomOpacity) {
-      a = getRandomArbitrary(0.5, 0.8);
+      a = getRandomArbitrary(0.6, 0.96);
     } else {
       a = 1;
     }
@@ -328,6 +327,13 @@ export default class Paper {
     };
   }
 
+  updateEntryStyles(entry) {
+    //update the color
+    return {
+      ...entry.styles,
+      color: this.fontColor,
+    };
+  }
   // Debug
   drawDots() {
     let { w, h } = this._dimensions;

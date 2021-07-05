@@ -23,14 +23,30 @@
   <body>
     <div id="app">
       <div id="controls">
+        <div class="page-controls">
+          <label> Page colour <input id="page-color" type="color" /> </label>
+          <label>
+            Page width
+            <input id="page-width" type="range" min="200" max="1200" step="1" />
+          </label>
+
+          <label>
+            Page height
+            <input
+              id="page-height"
+              type="range"
+              min="200"
+              max="1200"
+              step="1"
+            />
+          </label>
+        </div>
         <div class="text-controls">
           <button id="overwrite">Overwrite</button>
           <button id="undo">Undo</button>
           <button id="redo">redo</button>
 
           <label> Text colour <input id="text-color" type="color" /> </label>
-          <label> Page colour <input id="page-color" type="color" /> </label>
-
 
           <label>
             Line height
@@ -161,7 +177,9 @@
         </div>
       </div>
 
-      <canvas id="paper"></canvas>
+      <div class="canvas-container">
+        <canvas id="paper"></canvas>
+      </div>
     </div>
     <script src="./index.js"></script>
   </body>

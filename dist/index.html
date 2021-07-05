@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+  <head><link rel="stylesheet" href="/index.886c3751.css">
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=
@@ -10,18 +10,28 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/canvaswriter.e31bb0bc.css"></head>
+  </head>
   <body>
     <div id="app">
       <div id="controls">
+        <div class="page-controls">
+          <label> Page colour <input id="page-color" type="color"> </label>
+          <label>
+            Page width
+            <input id="page-width" type="range" min="200" max="1200" step="1">
+          </label>
+
+          <label>
+            Page height
+            <input id="page-height" type="range" min="200" max="1200" step="1">
+          </label>
+        </div>
         <div class="text-controls">
           <button id="overwrite">Overwrite</button>
           <button id="undo">Undo</button>
           <button id="redo">redo</button>
 
           <label> Text colour <input id="text-color" type="color"> </label>
-          <label> Page colour <input id="page-color" type="color"> </label>
-
 
           <label>
             Line height
@@ -92,8 +102,10 @@
         </div>
       </div>
 
-      <canvas id="paper"></canvas>
+      <div class="canvas-container">
+        <canvas id="paper"></canvas>
+      </div>
     </div>
-    <script src="/canvaswriter.e31bb0bc.js"></script>
+    <script src="/index.fd532818.js"></script>
   </body>
 </html>

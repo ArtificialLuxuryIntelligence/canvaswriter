@@ -11,12 +11,24 @@ export default class Editor {
     this.history = [];
     this.removedHistory = []; //undo functionality
     //options
-    this.overwrite = presets?.overwrite || false;
-    this.maxHistory = presets?.maxHistory || 100;
+    this._overwrite = presets?.overwrite || false;
+    this.maxHistory = presets?.maxHistory || 5000;
     this.init();
   }
 
   init() {}
+
+  get overwrite() {
+    return this._overwrite;
+  }
+
+  set overwrite(val) {
+    this._overwrite = val;
+
+    if (val === true && this.cursorIndex === null) {
+      this.cursorIndex = 0;
+    }
+  }
 
   // Exposed methods --------------------------------------------
 
@@ -27,7 +39,7 @@ export default class Editor {
   handleKeyInput(key, options = {}) {
     this.updateHistory(key, options);
     this.updateRemovedHistory(key);
-    this.updateCursor(key, this.overwrite);
+    this.updateCursor(key, this._overwrite);
 
     //
   }
@@ -57,12 +69,15 @@ export default class Editor {
   }
   getCurrentEntry() {
     // TODO refresh styles if it hasn't been edited (styles get initiated at creation but not updated if global styles are changed i.e.wonk/textcol is changed)
-
     let entry;
-    if (this.overwrite) {
+    if (this._overwrite) {
       entry = this.getEntry(this.cursorIndex);
     } else {
       entry = this.getEntry(this.nextCursorIndex());
+    }
+
+    if (entry && !entry.editedStyles) {
+      entry.setStyles(this.paper.updateEntryStyles(entry));
     }
     return entry;
   }
@@ -96,7 +111,7 @@ export default class Editor {
       this.cursorIndex = 0;
       return;
     }
-    if (this.overwrite) {
+    if (this._overwrite) {
       if (this.cursorIndex < last.length) {
         //?
         this.cursorIndex++;
@@ -104,7 +119,7 @@ export default class Editor {
         return;
       }
     }
-    if (!this.overwrite) {
+    if (!this._overwrite) {
       if (this.cursorIndex < last.length - 1) {
         //?
         this.cursorIndex++;
@@ -115,7 +130,7 @@ export default class Editor {
   }
   decrCursor() {
     if (this.cursorIndex === 0) {
-      if (this.overwrite) {
+      if (this._overwrite) {
         this.cursorIndex = 0;
       } else {
         this.cursorIndex = null;
@@ -130,7 +145,7 @@ export default class Editor {
     if (this.cursorIndex === null) {
       return 0;
     }
-    if (this.overwrite) {
+    if (this._overwrite) {
       if (this.cursorIndex < last.length + 1) {
         //?
         return this.cursorIndex + 1;
@@ -138,7 +153,7 @@ export default class Editor {
         return;
       }
     }
-    if (!this.overwrite) {
+    if (!this._overwrite) {
       if (this.cursorIndex < last.length) {
         return this.cursorIndex + 1;
       } else {
@@ -176,7 +191,7 @@ export default class Editor {
 
     // Handle delete
     if (key === 'Backspace') {
-      if (this.overwrite) {
+      if (this._overwrite) {
         this.updateHistory('ArrowLeft', options);
         return;
       } else {
@@ -213,7 +228,7 @@ export default class Editor {
       this.addToHistory(text);
       return;
     } else {
-      if (this.overwrite) {
+      if (this._overwrite) {
         let n = this.nextCursorIndex();
         // console.log('nextov', n);
         // Add entry to group at current index
@@ -245,13 +260,13 @@ export default class Editor {
   updateRemovedHistory(key) {
     // you can't redo if you have add new letters
 
-    if (this.overwrite) {
+    if (this._overwrite) {
       if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Backspace') {
         return;
       }
       this.removedHistory = [];
     }
-    if (!this.overwrite) {
+    if (!this._overwrite) {
       if (key === 'ArrowLeft' || key === 'ArrowRight') {
         return;
       }
@@ -374,7 +389,7 @@ class HistoryState {
     this.groups = [];
     this.cursorMovement = false;
     this.cursorIndex = null;
-    this.overwrite = null;
+    this._overwrite = null;
   }
 
   add(Group) {

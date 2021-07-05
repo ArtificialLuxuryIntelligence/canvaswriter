@@ -1,5 +1,4 @@
 import './styles.scss';
-
 import './src/gif.js/gif';
 import CanvasWriter from './src/CanvasWriter';
 import GIFWriter from './src/GIFWriter/GIFWriter';
@@ -15,7 +14,6 @@ const DOMElements = {
   l_opacity: document.getElementById('letter-o'),
   //text controls
   t_color: document.getElementById('text-color'),
-  t_page_color: document.getElementById('page-color'),
   t_line_height: document.getElementById('line-height'),
   t_letter_spacing: document.getElementById('letter-spacing'),
   t_font_scale: document.getElementById('font-scale'),
@@ -24,6 +22,12 @@ const DOMElements = {
   t_undo: document.getElementById('undo'),
   t_redo: document.getElementById('redo'),
   t_key: document, //detects key inputs
+
+  //page controls
+  p_color: document.getElementById('page-color'),
+  p_width: document.getElementById('page-width'),
+  p_height: document.getElementById('page-height'),
+
   //animation controls
   a_start: document.getElementById('animation-start'),
   a_start_idx: document.getElementById('animation-start-index'),
@@ -38,10 +42,13 @@ const DOMElements = {
 };
 
 function main() {
+  const presets = {
+    randomOpacity: true,
+  };
   // let canvasWriter = new CanvasWriter({ elements: DOMElements, settings: {} });
   let Gwriter = new GIFWriter({
     elements: DOMElements,
-    presets: { fontColor: '#200000', randomOpacity: true },
+    presets,
     settings: {},
   });
   console.log(Gwriter);
