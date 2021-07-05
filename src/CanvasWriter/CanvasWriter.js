@@ -4,7 +4,8 @@ import Paper from './Paper';
 // Combine Paper and Editor functionality
 export default class CanvasWriter {
   constructor(options) {
-    const { elements, presets, settings } = options;
+    console.log('options', options);
+    const { elements, settings, presets } = options;
     const { canvas, canvas2 = null } = elements;
 
     this.paper = new Paper(canvas, presets);
@@ -22,6 +23,7 @@ export default class CanvasWriter {
   }
 
   addEventListeners(DOMControls) {
+    console.log('adding listeners');
     const {
       canvas,
       canvas2,
@@ -94,7 +96,7 @@ export default class CanvasWriter {
       const handleKeyDown = (e) => {
         e.preventDefault();
         this.editor.handleKeyInput(e.key);
-        this.paper.refreshCanvas();
+        // this.paper.refreshCanvas();
         this.updateLetterControls(letterControls);
 
         this.renderLastText();

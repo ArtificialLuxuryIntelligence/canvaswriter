@@ -25,7 +25,10 @@ export default class Paper {
     this._fontRatio = presets?.fontRatio || 1;
     this._broken = presets?.broken || 0.2;
     this._fontColor = presets?.fontColor || '#500000';
-    this.randomOpacity = true || presets?.randomOpacity;
+    this.randomOpacity =
+      typeof presets?.randomOpacity === 'boolean'
+        ? presets.randomOpacity
+        : true; //can't use same method as others with booleans
 
     this.init();
   }
@@ -133,6 +136,11 @@ export default class Paper {
 
     let i, j;
 
+    //TODO add layers?
+    // do the below loop once for every layer -starting from bottom?
+    // add layer:1 to styles
+    // if layer ===currentl layer then render it..
+
     for (i = 0; i < this.#grid.y; i++) {
       for (j = 0; j < this.#grid.x - 1; j++) {
         let group = historyText?.groups[idx];
@@ -154,7 +162,6 @@ export default class Paper {
             if (entry.key.length === 1) {
               this.drawLetter(
                 entry.key,
-
                 c1,
                 c2,
                 entry.styles,
@@ -173,7 +180,12 @@ export default class Paper {
           }
 
           //TODO - dont' use group.cursor, use historyText.cursorIndex (then remove group.cursor everywhere..)
-          if (group.cursor) {
+
+          // if (historyText.cursorIndex === idx) {
+          //   this.drawLetter('_', c1, c2);
+          //   cursorRendered = true;
+          // }
+          if (historyText.cursorIndex === idx) {
             if (overwrite) {
               this.drawLetter('_', c1, c2);
               cursorRendered = true;
@@ -212,7 +224,12 @@ export default class Paper {
     // recallibarate all variables and repaint
     // called by most setters (like a react dep array kinda thing)
 
-    this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+    // this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+    this.ctx.fillStyle = 'green';
+    console.log('refresing');
+
+    this.ctx.fillRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+
     this.canvas.width = this._dimensions.w;
     this.canvas.height = this._dimensions.h;
     // console.log(this.canvas.clientHeight);
@@ -245,9 +262,7 @@ export default class Paper {
     this.ctx.textBaseline = 'middle';
     // this.ctx.font = `${this.#fontSize}px JetBrains Mono`;
     this.ctx.font = `${this.#fontSize}px Roboto Mono`;
-
     this.ctx.fillStyle = this._fontColor;
-
     let letterStyles;
 
     let ANStyles = this.getANStyles(letter);

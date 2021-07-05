@@ -2080,11 +2080,16 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "getCurrentEntry",
     value: function getCurrentEntry() {
+      // TODO refresh styles if it hasn't been edited (styles get initiated at creation but not updated if global styles are changed i.e.wonk/textcol is changed)
+      var entry;
+
       if (this.overwrite) {
-        return this.getEntry(this.cursorIndex);
+        entry = this.getEntry(this.cursorIndex);
       } else {
-        return this.getEntry(this.nextCursorIndex());
+        entry = this.getEntry(this.nextCursorIndex());
       }
+
+      return entry;
     }
   }, {
     key: "getEntry",
@@ -2193,8 +2198,8 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "updateHistory",
     value: function updateHistory(key, options) {
-      console.log(this.cursorIndex); //get last history item
-
+      // console.log(this.cursorIndex);
+      //get last history item
       var prevText = this.getLastHistory(); //clone last state..
 
       var text = (0, _lodash.default)(prevText);
@@ -2236,17 +2241,17 @@ var Editor = /*#__PURE__*/function () {
 
 
       if (!this.getCurrentEntry()) {
-        console.log('is empy'); // is empty
+        // console.log('is empy');
+        // is empty
+        entryGroup = new EntryGroup(entry); // console.log('nnn', this.nextCursorIndex());
 
-        entryGroup = new EntryGroup(entry);
-        console.log('nnn', this.nextCursorIndex());
         text.insert(entryGroup, this.nextCursorIndex());
         this.addToHistory(text);
         return;
       } else {
         if (this.overwrite) {
-          var n = this.nextCursorIndex();
-          console.log('nextov', n); // Add entry to group at current index
+          var n = this.nextCursorIndex(); // console.log('nextov', n);
+          // Add entry to group at current index
 
           entryGroup = text.groups[this.cursorIndex];
 
@@ -2263,9 +2268,9 @@ var Editor = /*#__PURE__*/function () {
           // Insert entry in entrygroup at next index
           entryGroup = new EntryGroup(entry);
 
-          var _n = this.nextCursorIndex();
+          var _n = this.nextCursorIndex(); // console.log('next', n);
 
-          console.log('next', _n);
+
           text.insert(entryGroup, this.nextCursorIndex()); // if (this.cursorIndex === null) {
           //   text.insert(entryGroup, this.nextCursorIndex());
           // } else {
@@ -2295,7 +2300,7 @@ var Editor = /*#__PURE__*/function () {
 
         this.removedHistory = [];
       }
-    } // update cursor valuesa
+    } // update cursor and overwrite values
 
   }, {
     key: "updateCursor",
@@ -2347,6 +2352,12 @@ var Editor = /*#__PURE__*/function () {
         last.cursorIndex = _this.cursorIndex;
       };
 
+      var updateLastHistoryOverwrite = function updateLastHistoryOverwrite() {
+        var last = _this.getLastHistory();
+
+        last.overwrite = overwrite;
+      };
+
       if (!overwrite) {
         if (key.length === 1 || key === 'Enter' || key === 'ArrowRight') {
           this.incrCursor();
@@ -2368,6 +2379,7 @@ var Editor = /*#__PURE__*/function () {
       }
 
       updateLastHistoryCursor();
+      updateLastHistoryOverwrite();
     } //sets cursor true in correct location of text
 
   }]);
@@ -2432,13 +2444,12 @@ var EntryGroup = /*#__PURE__*/function () {
 
 var HistoryState = /*#__PURE__*/function () {
   function HistoryState() {
-    var EntryGroups = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-
     _classCallCheck(this, HistoryState);
 
-    this.groups = EntryGroups;
+    this.groups = [];
     this.cursorMovement = false;
     this.cursorIndex = null;
+    this.overwrite = null;
   }
 
   _createClass(HistoryState, [{
@@ -2875,7 +2886,8 @@ var Paper = /*#__PURE__*/function () {
     this._fontRatio = (presets === null || presets === void 0 ? void 0 : presets.fontRatio) || 1;
     this._broken = (presets === null || presets === void 0 ? void 0 : presets.broken) || 0.2;
     this._fontColor = (presets === null || presets === void 0 ? void 0 : presets.fontColor) || '#500000';
-    this.randomOpacity = true || (presets === null || presets === void 0 ? void 0 : presets.randomOpacity);
+    this.randomOpacity = typeof (presets === null || presets === void 0 ? void 0 : presets.randomOpacity) === 'boolean' ? presets.randomOpacity : true; //can't use same method as others with booleans
+
     this.init();
   }
 
@@ -2953,7 +2965,10 @@ var Paper = /*#__PURE__*/function () {
         cursorRendered = true;
       }
 
-      var i, j;
+      var i, j; //TODO add layers?
+      // do the below loop once for every layer -starting from bottom?
+      // add layer:1 to styles
+      // if layer ===currentl layer then render it..
 
       for (i = 0; i < _classPrivateFieldGet(this, _grid).y; i++) {
         var _loop = function _loop() {
@@ -2983,9 +2998,13 @@ var Paper = /*#__PURE__*/function () {
               cursorRendered = true;
               cursorNext = false;
             } //TODO - dont' use group.cursor, use historyText.cursorIndex (then remove group.cursor everywhere..)
+            // if (historyText.cursorIndex === idx) {
+            //   this.drawLetter('_', c1, c2);
+            //   cursorRendered = true;
+            // }
 
 
-            if (group.cursor) {
+            if (historyText.cursorIndex === idx) {
               if (overwrite) {
                 _this.drawLetter('_', c1, c2);
 
@@ -3032,7 +3051,10 @@ var Paper = /*#__PURE__*/function () {
     value: function refreshCanvas() {
       // recallibarate all variables and repaint
       // called by most setters (like a react dep array kinda thing)
-      this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+      // this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+      this.ctx.fillStyle = 'green';
+      console.log('refresing');
+      this.ctx.fillRect(0, 0, this._dimensions.width, this._dimensions.heighth);
       this.canvas.width = this._dimensions.w;
       this.canvas.height = this._dimensions.h; // console.log(this.canvas.clientHeight);
       // this.canvas.width =
@@ -3263,9 +3285,10 @@ var CanvasWriter = /*#__PURE__*/function () {
       });
     });
 
+    console.log('options', options);
     var elements = options.elements,
-        presets = options.presets,
-        settings = options.settings;
+        settings = options.settings,
+        presets = options.presets;
     var canvas = elements.canvas,
         _elements$canvas = elements.canvas2,
         canvas2 = _elements$canvas === void 0 ? null : _elements$canvas;
@@ -3287,6 +3310,7 @@ var CanvasWriter = /*#__PURE__*/function () {
     value: function addEventListeners(DOMControls) {
       var _this2 = this;
 
+      console.log('adding listeners');
       var canvas = DOMControls.canvas,
           canvas2 = DOMControls.canvas2,
           _DOMControls$l_rotati = DOMControls.l_rotation_control,
@@ -3362,9 +3386,8 @@ var CanvasWriter = /*#__PURE__*/function () {
         var handleKeyDown = function handleKeyDown(e) {
           e.preventDefault();
 
-          _this2.editor.handleKeyInput(e.key);
+          _this2.editor.handleKeyInput(e.key); // this.paper.refreshCanvas();
 
-          _this2.paper.refreshCanvas();
 
           _this2.updateLetterControls(letterControls);
 
@@ -3482,23 +3505,254 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var _default = _CanvasWriter.default;
 exports.default = _default;
-},{"./CanvasWriter":"src/CanvasWriter/CanvasWriter.js","./Editor":"src/CanvasWriter/Editor.js","./Paper":"src/CanvasWriter/Paper.js"}],"index.js":[function(require,module,exports) {
+},{"./CanvasWriter":"src/CanvasWriter/CanvasWriter.js","./Editor":"src/CanvasWriter/Editor.js","./Paper":"src/CanvasWriter/Paper.js"}],"src/GIFWriter/GIFWriter.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _CanvasWriter2 = _interopRequireDefault(require("../CanvasWriter"));
+
+var _helpers = require("../CanvasWriter/helpers");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function exportVid(blob) {
+  var vid = document.createElement('video');
+  vid.src = URL.createObjectURL(blob);
+  vid.controls = true;
+  document.body.appendChild(vid);
+  var a = document.createElement('a');
+  a.download = 'myvid.mp4';
+  a.href = vid.src;
+  a.textContent = 'download the video';
+  document.body.appendChild(a);
+}
+
+function exportPic(canvas) {
+  var image = canvas.toDataURL('image/png');
+  console.log(image);
+  var img = new Image();
+  img.src = image;
+  document.body.append(img);
+} // Extends CanvasWriter functionality
+
+
+var GIFWriter = /*#__PURE__*/function (_CanvasWriter) {
+  _inherits(GIFWriter, _CanvasWriter);
+
+  var _super = _createSuper(GIFWriter);
+
+  function GIFWriter(options) {
+    var _this;
+
+    _classCallCheck(this, GIFWriter);
+
+    _this = _super.call(this, options);
+    _this.timer = null;
+    _this.animationSpeed = 0.1;
+    _this.startIndex = 0;
+
+    _this.init_gifwriter();
+
+    return _this;
+  } //blah super blah
+  //second canvas here (not in paper class)
+  //spread into same array in constructor?
+  //more dom nodes :
+  // - animationstart
+  // - speed
+  // - etc (see original)
+  // - output img/link?
+  // onRecorded // onSaved callbacks [probs used to update UI]
+
+
+  _createClass(GIFWriter, [{
+    key: "animate",
+    value: function animate(onAnimationEnd) {
+      var _this2 = this;
+
+      var idx = this.startIndex;
+      var history = this.editor.history;
+      console.log(history); //set letters visible at random intervals for natural typing effect
+
+      var type = function type() {
+        clearTimeout(_this2.timer);
+        var speed = _this2.animationSpeed * 1000;
+        var variance = _this2.animationSpeed * 500;
+        var interval = (0, _helpers.getRandomInt)(speed - variance, speed + variance);
+
+        if (idx < history.length) {
+          _this2.timer = setTimeout(function () {
+            var historyText = history[idx];
+
+            _this2.paper.refreshCanvas();
+
+            _this2.paper.renderText(historyText, historyText.overwrite);
+
+            idx++;
+            type();
+          }, interval);
+        } else {
+          clearTimeout(_this2.timer);
+          onAnimationEnd && onAnimationEnd();
+          return;
+        }
+      };
+
+      type();
+    }
+  }, {
+    key: "record",
+    value: function record() {
+      var chunks = []; // here we will store our recorded media chunks (Blobs)
+
+      var stream = this.DOMControls.canvas.captureStream(); // grab our canvas MediaStream
+
+      var rec = new MediaRecorder(stream); // init the recorder
+      // every time the recorder has new data, we will store it in our array
+
+      rec.ondataavailable = function (e) {
+        return chunks.push(e.data);
+      }; // only when the recorder stops, we construct a complete Blob from all the chunks
+      // rec.onstop = (e) => exportVid(new Blob(chunks, { type: 'video/webm' }));
+
+
+      rec.onstop = function (e) {
+        return exportVid(new Blob(chunks, {
+          type: 'video/mp4'
+        }));
+      };
+
+      rec.start(); // setTimeout(() => rec.stop(), 3000); // stop recording in 3s
+
+      function onAnimationEnd() {
+        setTimeout(function () {
+          //stop the last frame from being missed..
+          rec.stop();
+        }, 200);
+      }
+
+      this.animate(onAnimationEnd);
+    }
+  }, {
+    key: "saveImage",
+    value: function saveImage() {
+      //save as img
+      exportPic(this.DOMControls.canvas);
+    }
+  }, {
+    key: "init_gifwriter",
+    value: function init_gifwriter() {
+      this.addGifControlEventListeners(this.DOMControls);
+    }
+  }, {
+    key: "addGifControlEventListeners",
+    value: function addGifControlEventListeners(DOMControls) {
+      var _this3 = this;
+
+      var a_start_idx = DOMControls.a_start_idx,
+          a_start = DOMControls.a_start,
+          a_speed = DOMControls.a_speed,
+          s_record = DOMControls.s_record,
+          s_image = DOMControls.s_image,
+          s_gif = DOMControls.s_gif; //etc etc/
+
+      var syncInitial = function syncInitial() {
+        a_start_idx && (a_start_idx.value = _this3.startIndex);
+        a_speed && (a_speed.value = _this3.animationSpeed);
+      };
+
+      var addControlListeners = function addControlListeners() {
+        var handleStartAnimation = function handleStartAnimation(e) {
+          _this3.animate();
+        };
+
+        var handleStartIndexRange = function handleStartIndexRange(e) {
+          _this3.startIndex = e.target.value;
+
+          _this3.animate();
+        };
+
+        var handleAnimationSpeedRange = function handleAnimationSpeedRange(e) {
+          _this3.animationSpeed = e.target.value;
+
+          _this3.animate();
+        };
+
+        var handleStartRecordVideo = function handleStartRecordVideo(e) {
+          _this3.record();
+        };
+
+        var handleStartRecordGif = function handleStartRecordGif(e) {// this.record();
+        };
+
+        var handleSaveImage = function handleSaveImage(e) {
+          _this3.saveImage();
+        };
+
+        a_start === null || a_start === void 0 ? void 0 : a_start.addEventListener('click', handleStartAnimation);
+        a_start_idx === null || a_start_idx === void 0 ? void 0 : a_start_idx.addEventListener('input', handleStartIndexRange);
+        a_speed === null || a_speed === void 0 ? void 0 : a_speed.addEventListener('input', handleAnimationSpeedRange);
+        s_record === null || s_record === void 0 ? void 0 : s_record.addEventListener('click', handleStartRecordVideo);
+        s_image === null || s_image === void 0 ? void 0 : s_image.addEventListener('click', handleSaveImage);
+        s_gif === null || s_gif === void 0 ? void 0 : s_gif.addEventListener('click', handleStartRecordGif);
+      };
+
+      addControlListeners();
+      syncInitial();
+    }
+  }]);
+
+  return GIFWriter;
+}(_CanvasWriter2.default);
+
+exports.default = GIFWriter;
+},{"../CanvasWriter":"src/CanvasWriter/index.js","../CanvasWriter/helpers":"src/CanvasWriter/helpers.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 require("./styles.scss");
 
 var _CanvasWriter = _interopRequireDefault(require("./src/CanvasWriter"));
 
+var _GIFWriter = _interopRequireDefault(require("./src/GIFWriter/GIFWriter"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 console.clear();
 var DOMElements = {
+  //letter controls
   l_rotation_control: document.getElementById('letter-r'),
   l_x_control: document.getElementById('letter-x'),
   l_y_control: document.getElementById('letter-y'),
   l_scale_control: document.getElementById('letter-s'),
   l_color: document.getElementById('letter-color'),
   l_opacity: document.getElementById('letter-o'),
+  //text controls
   t_color: document.getElementById('text-color'),
   t_line_height: document.getElementById('line-height'),
   t_letter_spacing: document.getElementById('letter-spacing'),
@@ -3508,18 +3762,34 @@ var DOMElements = {
   t_undo: document.getElementById('undo'),
   t_redo: document.getElementById('redo'),
   t_key: document,
+  //detects key inputs
+  //animation controls
+  a_start: document.getElementById('animation-start'),
+  a_start_idx: document.getElementById('animation-start-index'),
+  a_speed: document.getElementById('animation-speed'),
+  // saving controls
+  s_record: document.getElementById('record-vid'),
+  s_gif: document.getElementById('record-gif'),
+  s_image: document.getElementById('save-image'),
+  //canvas
   canvas: document.getElementById('paper')
 };
 
 function main() {
-  var canvasWriter = new _CanvasWriter.default({
+  // let canvasWriter = new CanvasWriter({ elements: DOMElements, settings: {} });
+  var Gwriter = new _GIFWriter.default({
     elements: DOMElements,
+    presets: {
+      fontColor: '#200000',
+      randomOpacity: true
+    },
     settings: {}
   });
+  console.log(Gwriter); // console.log(canvasWriter);
 }
 
 main();
-},{"./styles.scss":"styles.scss","./src/CanvasWriter":"src/CanvasWriter/index.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./styles.scss":"styles.scss","./src/CanvasWriter":"src/CanvasWriter/index.js","./src/GIFWriter/GIFWriter":"src/GIFWriter/GIFWriter.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3547,7 +3817,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36077" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36199" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

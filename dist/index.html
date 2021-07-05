@@ -58,7 +58,7 @@
           </label>
           <label>
             R
-            <input id="letter-r" data-key="rotation" type="range" min="0" max="360" step="0.05">
+            <input id="letter-r" data-key="rotation" type="range" min="-180" max="180" step="0.1">
           </label>
           <label>
             Scale
@@ -68,6 +68,25 @@
             Opacity
             <input id="letter-o" data-key="opacity" type="range" min="0.1" max="1" step="0.05">
           </label>
+        </div>
+
+        <div class="save-controls">
+          <button id="animation-start">Start animation</button>
+          <label>
+            Faster
+            <input id="animation-speed" type="range" min="0.02" max="0.7" step="0.02">
+            Slower
+          </label>
+          <label>
+            Start index
+            <input id="animation-start-index" type="range" min="0" max="100" step="1">
+          </label>
+        </div>
+        <div class="animation-controls">
+          <button id="record-vid">Record Vid</button>
+          <button id="record-gif">Record Gif</button>
+
+          <button id="save-image">Save image</button>
         </div>
       </div>
 

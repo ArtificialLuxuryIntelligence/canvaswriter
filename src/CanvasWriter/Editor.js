@@ -56,12 +56,17 @@ export default class Editor {
     }
   }
   getCurrentEntry() {
+    // TODO refresh styles if it hasn't been edited (styles get initiated at creation but not updated if global styles are changed i.e.wonk/textcol is changed)
+
+    let entry;
     if (this.overwrite) {
-      return this.getEntry(this.cursorIndex);
+      entry = this.getEntry(this.cursorIndex);
     } else {
-      return this.getEntry(this.nextCursorIndex());
+      entry = this.getEntry(this.nextCursorIndex());
     }
+    return entry;
   }
+
   getEntry(index) {
     //returns top letter of stack in top history entry
     // NOTE: if there is a paper instance connected, then it will also load in the style of that letter
@@ -156,7 +161,7 @@ export default class Editor {
 
   // add new text to history
   updateHistory(key, options) {
-    console.log(this.cursorIndex);
+    // console.log(this.cursorIndex);
     //get last history item
     let prevText = this.getLastHistory();
 
@@ -200,17 +205,17 @@ export default class Editor {
 
     // Add to history
     if (!this.getCurrentEntry()) {
-      console.log('is empy');
+      // console.log('is empy');
       // is empty
       entryGroup = new EntryGroup(entry);
-      console.log('nnn', this.nextCursorIndex());
+      // console.log('nnn', this.nextCursorIndex());
       text.insert(entryGroup, this.nextCursorIndex());
       this.addToHistory(text);
       return;
     } else {
       if (this.overwrite) {
         let n = this.nextCursorIndex();
-        console.log('nextov', n);
+        // console.log('nextov', n);
         // Add entry to group at current index
         entryGroup = text.groups[this.cursorIndex];
         if (entryGroup) {
@@ -225,7 +230,7 @@ export default class Editor {
         // Insert entry in entrygroup at next index
         entryGroup = new EntryGroup(entry);
         let n = this.nextCursorIndex();
-        console.log('next', n);
+        // console.log('next', n);
         text.insert(entryGroup, this.nextCursorIndex());
         // if (this.cursorIndex === null) {
         //   text.insert(entryGroup, this.nextCursorIndex());
@@ -253,7 +258,7 @@ export default class Editor {
       this.removedHistory = [];
     }
   }
-  // update cursor valuesa
+  // update cursor and overwrite values
   updateCursor(key, overwrite) {
     const updateLastHistoryCursor = () => {
       let last = this.getLastHistory();
@@ -302,6 +307,11 @@ export default class Editor {
       last.cursorIndex = this.cursorIndex;
     };
 
+    const updateLastHistoryOverwrite = () => {
+      let last = this.getLastHistory();
+      last.overwrite = overwrite;
+    };
+
     if (!overwrite) {
       if (key.length === 1 || key === 'Enter' || key === 'ArrowRight') {
         this.incrCursor();
@@ -323,6 +333,7 @@ export default class Editor {
     }
 
     updateLastHistoryCursor();
+    updateLastHistoryOverwrite();
   }
   //sets cursor true in correct location of text
 }
@@ -359,10 +370,11 @@ class EntryGroup {
 }
 
 class HistoryState {
-  constructor(EntryGroups = []) {
-    this.groups = EntryGroups;
+  constructor() {
+    this.groups = [];
     this.cursorMovement = false;
     this.cursorIndex = null;
+    this.overwrite = null;
   }
 
   add(Group) {
