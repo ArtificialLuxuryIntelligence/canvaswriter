@@ -1,11 +1,7 @@
 import './styles.scss';
-
 import CanvasWriter from './src/CanvasWriter';
 console.clear();
 
-// const controller = new AbortController(); //too new
-
-///
 
 const DOMElements = {
   l_rotation_control: document.getElementById('letter-r'),

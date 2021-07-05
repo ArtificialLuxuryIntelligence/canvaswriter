@@ -2015,6 +2015,8 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 var Editor = /*#__PURE__*/function () {
   function Editor() {
+    var presets = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
     _classCallCheck(this, Editor);
 
     this.paper = null;
@@ -2023,8 +2025,8 @@ var Editor = /*#__PURE__*/function () {
     this.removedHistory = []; //undo functionality
     //options
 
-    this.overwrite = false;
-    this.maxHistory = 100;
+    this.overwrite = (presets === null || presets === void 0 ? void 0 : presets.overwrite) || false;
+    this.maxHistory = (presets === null || presets === void 0 ? void 0 : presets.maxHistory) || 100;
     this.init();
   }
 
@@ -2156,7 +2158,7 @@ var Editor = /*#__PURE__*/function () {
       }
 
       if (this.overwrite) {
-        if (this.cursorIndex < last.length) {
+        if (this.cursorIndex < last.length + 1) {
           //?
           return this.cursorIndex + 1;
         } else {
@@ -2165,8 +2167,7 @@ var Editor = /*#__PURE__*/function () {
       }
 
       if (!this.overwrite) {
-        if (this.cursorIndex < last.length - 1) {
-          //?
+        if (this.cursorIndex < last.length) {
           return this.cursorIndex + 1;
         } else {
           return;
@@ -2192,12 +2193,11 @@ var Editor = /*#__PURE__*/function () {
   }, {
     key: "updateHistory",
     value: function updateHistory(key, options) {
-      //get last history item
+      console.log(this.cursorIndex); //get last history item
+
       var prevText = this.getLastHistory(); //clone last state..
 
-      var text = (0, _lodash.default)(prevText); // let text = Object.assign({}, prevText);
-      // Object.setPrototypeOf(text, HistoryState.prototype);
-
+      var text = (0, _lodash.default)(prevText);
       var entryGroup;
       var entry = new Entry(key, {});
 
@@ -2235,15 +2235,19 @@ var Editor = /*#__PURE__*/function () {
       // Add to history
 
 
-      if (!text.groups.length) {
-        // is empty
+      if (!this.getCurrentEntry()) {
+        console.log('is empy'); // is empty
+
         entryGroup = new EntryGroup(entry);
-        text.insert(entryGroup, 0);
+        console.log('nnn', this.nextCursorIndex());
+        text.insert(entryGroup, this.nextCursorIndex());
         this.addToHistory(text);
         return;
       } else {
         if (this.overwrite) {
-          // Add entry to group at current index
+          var n = this.nextCursorIndex();
+          console.log('nextov', n); // Add entry to group at current index
+
           entryGroup = text.groups[this.cursorIndex];
 
           if (entryGroup) {
@@ -2251,14 +2255,23 @@ var Editor = /*#__PURE__*/function () {
             text.replace(entryGroup, this.cursorIndex);
           } else {
             entryGroup = new EntryGroup(entry);
-            text.insert(entryGroup, this.cursorIndex + 1);
+            text.insert(entryGroup, this.nextCursorIndex());
           }
 
           this.addToHistory(text);
         } else {
           // Insert entry in entrygroup at next index
           entryGroup = new EntryGroup(entry);
-          text.insert(entryGroup, this.cursorIndex + 1);
+
+          var _n = this.nextCursorIndex();
+
+          console.log('next', _n);
+          text.insert(entryGroup, this.nextCursorIndex()); // if (this.cursorIndex === null) {
+          //   text.insert(entryGroup, this.nextCursorIndex());
+          // } else {
+          //   text.insert(entryGroup, this.cursorIndex);
+          // }
+
           this.addToHistory(text);
         }
       }
@@ -2806,13 +2819,6 @@ function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateM
 
 function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to set private field on non-instance"); } if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } return value; }
 
-var testStyles = {
-  scale: 1.2,
-  rotation: 20,
-  x: 0.1,
-  y: -0.2
-};
-
 var _grid = new WeakMap();
 
 var _ANStyles = new WeakMap();
@@ -2825,6 +2831,8 @@ var Paper = /*#__PURE__*/function () {
   // probably shouldn't mix _ and # but the _values are exposed thru getters...
   //maybe make accessible
   function Paper(canvas) {
+    var presets = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
     _classCallCheck(this, Paper);
 
     _grid.set(this, {
@@ -2857,18 +2865,17 @@ var Paper = /*#__PURE__*/function () {
 
     this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
-    this._dimensions = {
+    this._dimensions = (presets === null || presets === void 0 ? void 0 : presets.dimensions) || {
       w: 300,
       h: 400
     };
-    this._lineHeight = 1;
-    this._letterSpacing = 0.5; //[0,1]
+    this._lineHeight = (presets === null || presets === void 0 ? void 0 : presets.lineHeight) || 1;
+    this._letterSpacing = (presets === null || presets === void 0 ? void 0 : presets.letterSpacing) || 0.5; //[0,1]
 
-    this._fontRatio = 1;
-    this._broken = 0.2;
-    this._fontColor = '#500000';
-    this.randomOpacity = true; //internals [use #?]
-
+    this._fontRatio = (presets === null || presets === void 0 ? void 0 : presets.fontRatio) || 1;
+    this._broken = (presets === null || presets === void 0 ? void 0 : presets.broken) || 0.2;
+    this._fontColor = (presets === null || presets === void 0 ? void 0 : presets.fontColor) || '#500000';
+    this.randomOpacity = true || (presets === null || presets === void 0 ? void 0 : presets.randomOpacity);
     this.init();
   }
 
@@ -2975,7 +2982,8 @@ var Paper = /*#__PURE__*/function () {
 
               cursorRendered = true;
               cursorNext = false;
-            }
+            } //TODO - dont' use group.cursor, use historyText.cursorIndex (then remove group.cursor everywhere..)
+
 
             if (group.cursor) {
               if (overwrite) {
@@ -3225,6 +3233,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+// Combine Paper and Editor functionality
 var CanvasWriter = /*#__PURE__*/function () {
   function CanvasWriter(options) {
     var _this = this;
@@ -3255,14 +3264,13 @@ var CanvasWriter = /*#__PURE__*/function () {
     });
 
     var elements = options.elements,
+        presets = options.presets,
         settings = options.settings;
     var canvas = elements.canvas,
         _elements$canvas = elements.canvas2,
         canvas2 = _elements$canvas === void 0 ? null : _elements$canvas;
-    this.paper = new _Paper.default(canvas);
-    this.paper2 = canvas2 ? new _Paper.default(canvas2) : null; //second hidden canvas if needed ()
-
-    this.editor = new _Editor.default();
+    this.paper = new _Paper.default(canvas, presets);
+    this.editor = new _Editor.default(presets);
     this.DOMControls = elements;
     this.settings = settings;
     this.init();
@@ -3483,9 +3491,7 @@ var _CanvasWriter = _interopRequireDefault(require("./src/CanvasWriter"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-console.clear(); // const controller = new AbortController(); //too new
-///
-
+console.clear();
 var DOMElements = {
   l_rotation_control: document.getElementById('letter-r'),
   l_x_control: document.getElementById('letter-x'),
@@ -3541,7 +3547,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "41149" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36077" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

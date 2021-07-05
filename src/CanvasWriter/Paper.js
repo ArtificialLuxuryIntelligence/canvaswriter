@@ -3,8 +3,6 @@
 import { initAlphaNumStyles } from './alphaNumStyles';
 import { clamp, getRandomArbitrary, hex2rgba } from './helpers';
 
-const testStyles = { scale: 1.2, rotation: 20, x: 0.1, y: -0.2 };
-
 export default class Paper {
   // probably shouldn't mix _ and # but the _values are exposed thru getters...
 
@@ -17,20 +15,17 @@ export default class Paper {
   #padding = { x: 0, y: 0 }; //maybe make accessible
   #fontSize = 1;
 
-  constructor(canvas) {
+  constructor(canvas, presets = {}) {
     this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
 
-    this._dimensions = { w: 300, h: 400 };
-    this._lineHeight = 1;
-    this._letterSpacing = 0.5; //[0,1]
-    this._fontRatio = 1;
-    this._broken = 0.2;
-    this._fontColor = '#500000';
-
-    this.randomOpacity = true;
-
-    //internals [use #?]
+    this._dimensions = presets?.dimensions || { w: 300, h: 400 };
+    this._lineHeight = presets?.lineHeight || 1;
+    this._letterSpacing = presets?.letterSpacing || 0.5; //[0,1]
+    this._fontRatio = presets?.fontRatio || 1;
+    this._broken = presets?.broken || 0.2;
+    this._fontColor = presets?.fontColor || '#500000';
+    this.randomOpacity = true || presets?.randomOpacity;
 
     this.init();
   }
@@ -176,6 +171,8 @@ export default class Paper {
             cursorRendered = true;
             cursorNext = false;
           }
+
+          //TODO - dont' use group.cursor, use historyText.cursorIndex (then remove group.cursor everywhere..)
           if (group.cursor) {
             if (overwrite) {
               this.drawLetter('_', c1, c2);

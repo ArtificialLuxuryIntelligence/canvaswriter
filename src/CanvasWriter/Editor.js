@@ -4,14 +4,15 @@ import { clone } from './helpers';
 import cloneDeep from 'lodash.clonedeep';
 
 export default class Editor {
-  constructor() {
+  constructor(presets = {}) {
     this.paper = null;
+
     this.cursorIndex = 0;
     this.history = [];
     this.removedHistory = []; //undo functionality
     //options
-    this.overwrite = false;
-    this.maxHistory = 100;
+    this.overwrite = presets?.overwrite || false;
+    this.maxHistory = presets?.maxHistory || 100;
     this.init();
   }
 
@@ -125,7 +126,7 @@ export default class Editor {
       return 0;
     }
     if (this.overwrite) {
-      if (this.cursorIndex < last.length) {
+      if (this.cursorIndex < last.length + 1) {
         //?
         return this.cursorIndex + 1;
       } else {
@@ -133,8 +134,7 @@ export default class Editor {
       }
     }
     if (!this.overwrite) {
-      if (this.cursorIndex < last.length - 1) {
-        //?
+      if (this.cursorIndex < last.length) {
         return this.cursorIndex + 1;
       } else {
         return;
@@ -156,13 +156,12 @@ export default class Editor {
 
   // add new text to history
   updateHistory(key, options) {
+    console.log(this.cursorIndex);
     //get last history item
     let prevText = this.getLastHistory();
 
     //clone last state..
     let text = cloneDeep(prevText);
-    // let text = Object.assign({}, prevText);
-    // Object.setPrototypeOf(text, HistoryState.prototype);
 
     let entryGroup;
     let entry = new Entry(key, {});
@@ -200,14 +199,18 @@ export default class Editor {
     //Handle ctrl, shift etc?
 
     // Add to history
-    if (!text.groups.length) {
+    if (!this.getCurrentEntry()) {
+      console.log('is empy');
       // is empty
       entryGroup = new EntryGroup(entry);
-      text.insert(entryGroup, 0);
+      console.log('nnn', this.nextCursorIndex());
+      text.insert(entryGroup, this.nextCursorIndex());
       this.addToHistory(text);
       return;
     } else {
       if (this.overwrite) {
+        let n = this.nextCursorIndex();
+        console.log('nextov', n);
         // Add entry to group at current index
         entryGroup = text.groups[this.cursorIndex];
         if (entryGroup) {
@@ -215,13 +218,21 @@ export default class Editor {
           text.replace(entryGroup, this.cursorIndex);
         } else {
           entryGroup = new EntryGroup(entry);
-          text.insert(entryGroup, this.cursorIndex + 1);
+          text.insert(entryGroup, this.nextCursorIndex());
         }
         this.addToHistory(text);
       } else {
         // Insert entry in entrygroup at next index
         entryGroup = new EntryGroup(entry);
-        text.insert(entryGroup, this.cursorIndex + 1);
+        let n = this.nextCursorIndex();
+        console.log('next', n);
+        text.insert(entryGroup, this.nextCursorIndex());
+        // if (this.cursorIndex === null) {
+        //   text.insert(entryGroup, this.nextCursorIndex());
+        // } else {
+        //   text.insert(entryGroup, this.cursorIndex);
+        // }
+
         this.addToHistory(text);
       }
     }

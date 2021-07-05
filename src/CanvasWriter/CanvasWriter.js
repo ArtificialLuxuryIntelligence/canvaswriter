@@ -1,14 +1,14 @@
 import Editor from './Editor';
 import Paper from './Paper';
 
+// Combine Paper and Editor functionality
 export default class CanvasWriter {
   constructor(options) {
-    const { elements, settings } = options;
+    const { elements, presets, settings } = options;
     const { canvas, canvas2 = null } = elements;
 
-    this.paper = new Paper(canvas);
-    this.paper2 = canvas2 ? new Paper(canvas2) : null; //second hidden canvas if needed ()
-    this.editor = new Editor();
+    this.paper = new Paper(canvas, presets);
+    this.editor = new Editor(presets);
 
     this.DOMControls = elements;
     this.settings = settings;
