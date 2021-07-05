@@ -25,11 +25,12 @@ export default class Paper {
     this._fontRatio = presets?.fontRatio || 1;
     this._broken = presets?.broken || 0.2;
     this._fontColor = presets?.fontColor || '#500000';
+
     this.randomOpacity =
       typeof presets?.randomOpacity === 'boolean'
         ? presets.randomOpacity
         : true; //can't use same method as others with booleans
-
+    this.pageColor = presets?.pageColor || '#ffffff';
     this.init();
   }
 
@@ -224,12 +225,6 @@ export default class Paper {
     // recallibarate all variables and repaint
     // called by most setters (like a react dep array kinda thing)
 
-    // this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
-    this.ctx.fillStyle = 'green';
-    console.log('refresing');
-
-    this.ctx.fillRect(0, 0, this._dimensions.width, this._dimensions.heighth);
-
     this.canvas.width = this._dimensions.w;
     this.canvas.height = this._dimensions.h;
     // console.log(this.canvas.clientHeight);
@@ -253,6 +248,11 @@ export default class Paper {
         (this._letterSpacing * this.#fontSize),
       y: this._dimensions.h / (this._lineHeight * this.#fontSize),
     };
+
+    // this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+    this.ctx.fillStyle = this.pageColor;
+    console.log('refresing');
+    this.ctx.fillRect(0, 0, this._dimensions.w, this._dimensions.h);
   }
 
   // ---End exposed methods --------------------------------------------

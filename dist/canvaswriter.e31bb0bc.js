@@ -189,7 +189,681 @@ var reloadCSS = require('_css_loader');
 
 module.hot.dispose(reloadCSS);
 module.hot.accept(reloadCSS);
-},{"_css_loader":"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/css-loader.js"}],"src/CanvasWriter/helpers.js":[function(require,module,exports) {
+},{"_css_loader":"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/css-loader.js"}],"src/gif.js/gif.js":[function(require,module,exports) {
+var define;
+var global = arguments[3];
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+// gif.js 0.2.0 - https://github.com/jnordberg/gif.js
+(function (f) {
+  if ((typeof exports === "undefined" ? "undefined" : _typeof(exports)) === 'object' && typeof module !== 'undefined') {
+    module.exports = f();
+  } else if (typeof define === 'function' && define.amd) {
+    define([], f);
+  } else {
+    var g;
+
+    if (typeof window !== 'undefined') {
+      g = window;
+    } else if (typeof global !== 'undefined') {
+      g = global;
+    } else if (typeof self !== 'undefined') {
+      g = self;
+    } else {
+      g = this;
+    }
+
+    g.GIF = f();
+  }
+})(function () {
+  var define, module, exports;
+  return function e(t, n, r) {
+    function s(o, u) {
+      if (!n[o]) {
+        if (!t[o]) {
+          var a = typeof require == 'function' && require;
+          if (!u && a) return a(o, !0);
+          if (i) return i(o, !0);
+          var f = new Error("Cannot find module '" + o + "'");
+          throw f.code = 'MODULE_NOT_FOUND', f;
+        }
+
+        var l = n[o] = {
+          exports: {}
+        };
+        t[o][0].call(l.exports, function (e) {
+          var n = t[o][1][e];
+          return s(n ? n : e);
+        }, l, l.exports, e, t, n, r);
+      }
+
+      return n[o].exports;
+    }
+
+    var i = typeof require == 'function' && require;
+
+    for (var o = 0; o < r.length; o++) {
+      s(r[o]);
+    }
+
+    return s;
+  }({
+    1: [function (require, module, exports) {
+      function EventEmitter() {
+        this._events = this._events || {};
+        this._maxListeners = this._maxListeners || undefined;
+      }
+
+      module.exports = EventEmitter;
+      EventEmitter.EventEmitter = EventEmitter;
+      EventEmitter.prototype._events = undefined;
+      EventEmitter.prototype._maxListeners = undefined;
+      EventEmitter.defaultMaxListeners = 10;
+
+      EventEmitter.prototype.setMaxListeners = function (n) {
+        if (!isNumber(n) || n < 0 || isNaN(n)) throw TypeError('n must be a positive number');
+        this._maxListeners = n;
+        return this;
+      };
+
+      EventEmitter.prototype.emit = function (type) {
+        var er, handler, len, args, i, listeners;
+        if (!this._events) this._events = {};
+
+        if (type === 'error') {
+          if (!this._events.error || isObject(this._events.error) && !this._events.error.length) {
+            er = arguments[1];
+
+            if (er instanceof Error) {
+              throw er;
+            } else {
+              var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+              err.context = er;
+              throw err;
+            }
+          }
+        }
+
+        handler = this._events[type];
+        if (isUndefined(handler)) return false;
+
+        if (isFunction(handler)) {
+          switch (arguments.length) {
+            case 1:
+              handler.call(this);
+              break;
+
+            case 2:
+              handler.call(this, arguments[1]);
+              break;
+
+            case 3:
+              handler.call(this, arguments[1], arguments[2]);
+              break;
+
+            default:
+              args = Array.prototype.slice.call(arguments, 1);
+              handler.apply(this, args);
+          }
+        } else if (isObject(handler)) {
+          args = Array.prototype.slice.call(arguments, 1);
+          listeners = handler.slice();
+          len = listeners.length;
+
+          for (i = 0; i < len; i++) {
+            listeners[i].apply(this, args);
+          }
+        }
+
+        return true;
+      };
+
+      EventEmitter.prototype.addListener = function (type, listener) {
+        var m;
+        if (!isFunction(listener)) throw TypeError('listener must be a function');
+        if (!this._events) this._events = {};
+        if (this._events.newListener) this.emit('newListener', type, isFunction(listener.listener) ? listener.listener : listener);
+        if (!this._events[type]) this._events[type] = listener;else if (isObject(this._events[type])) this._events[type].push(listener);else this._events[type] = [this._events[type], listener];
+
+        if (isObject(this._events[type]) && !this._events[type].warned) {
+          if (!isUndefined(this._maxListeners)) {
+            m = this._maxListeners;
+          } else {
+            m = EventEmitter.defaultMaxListeners;
+          }
+
+          if (m && m > 0 && this._events[type].length > m) {
+            this._events[type].warned = true;
+            console.error('(node) warning: possible EventEmitter memory ' + 'leak detected. %d listeners added. ' + 'Use emitter.setMaxListeners() to increase limit.', this._events[type].length);
+
+            if (typeof console.trace === 'function') {
+              console.trace();
+            }
+          }
+        }
+
+        return this;
+      };
+
+      EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+      EventEmitter.prototype.once = function (type, listener) {
+        if (!isFunction(listener)) throw TypeError('listener must be a function');
+        var fired = false;
+
+        function g() {
+          this.removeListener(type, g);
+
+          if (!fired) {
+            fired = true;
+            listener.apply(this, arguments);
+          }
+        }
+
+        g.listener = listener;
+        this.on(type, g);
+        return this;
+      };
+
+      EventEmitter.prototype.removeListener = function (type, listener) {
+        var list, position, length, i;
+        if (!isFunction(listener)) throw TypeError('listener must be a function');
+        if (!this._events || !this._events[type]) return this;
+        list = this._events[type];
+        length = list.length;
+        position = -1;
+
+        if (list === listener || isFunction(list.listener) && list.listener === listener) {
+          delete this._events[type];
+          if (this._events.removeListener) this.emit('removeListener', type, listener);
+        } else if (isObject(list)) {
+          for (i = length; i-- > 0;) {
+            if (list[i] === listener || list[i].listener && list[i].listener === listener) {
+              position = i;
+              break;
+            }
+          }
+
+          if (position < 0) return this;
+
+          if (list.length === 1) {
+            list.length = 0;
+            delete this._events[type];
+          } else {
+            list.splice(position, 1);
+          }
+
+          if (this._events.removeListener) this.emit('removeListener', type, listener);
+        }
+
+        return this;
+      };
+
+      EventEmitter.prototype.removeAllListeners = function (type) {
+        var key, listeners;
+        if (!this._events) return this;
+
+        if (!this._events.removeListener) {
+          if (arguments.length === 0) this._events = {};else if (this._events[type]) delete this._events[type];
+          return this;
+        }
+
+        if (arguments.length === 0) {
+          for (key in this._events) {
+            if (key === 'removeListener') continue;
+            this.removeAllListeners(key);
+          }
+
+          this.removeAllListeners('removeListener');
+          this._events = {};
+          return this;
+        }
+
+        listeners = this._events[type];
+
+        if (isFunction(listeners)) {
+          this.removeListener(type, listeners);
+        } else if (listeners) {
+          while (listeners.length) {
+            this.removeListener(type, listeners[listeners.length - 1]);
+          }
+        }
+
+        delete this._events[type];
+        return this;
+      };
+
+      EventEmitter.prototype.listeners = function (type) {
+        var ret;
+        if (!this._events || !this._events[type]) ret = [];else if (isFunction(this._events[type])) ret = [this._events[type]];else ret = this._events[type].slice();
+        return ret;
+      };
+
+      EventEmitter.prototype.listenerCount = function (type) {
+        if (this._events) {
+          var evlistener = this._events[type];
+          if (isFunction(evlistener)) return 1;else if (evlistener) return evlistener.length;
+        }
+
+        return 0;
+      };
+
+      EventEmitter.listenerCount = function (emitter, type) {
+        return emitter.listenerCount(type);
+      };
+
+      function isFunction(arg) {
+        return typeof arg === 'function';
+      }
+
+      function isNumber(arg) {
+        return typeof arg === 'number';
+      }
+
+      function isObject(arg) {
+        return _typeof(arg) === 'object' && arg !== null;
+      }
+
+      function isUndefined(arg) {
+        return arg === void 0;
+      }
+    }, {}],
+    2: [function (require, module, exports) {
+      var UA, browser, mode, platform, ua;
+      ua = navigator.userAgent.toLowerCase();
+      platform = navigator.platform.toLowerCase();
+      UA = ua.match(/(opera|ie|firefox|chrome|version)[\s\/:]([\w\d\.]+)?.*?(safari|version[\s\/:]([\w\d\.]+)|$)/) || [null, 'unknown', 0];
+      mode = UA[1] === 'ie' && document.documentMode;
+      browser = {
+        name: UA[1] === 'version' ? UA[3] : UA[1],
+        version: mode || parseFloat(UA[1] === 'opera' && UA[4] ? UA[4] : UA[2]),
+        platform: {
+          name: ua.match(/ip(?:ad|od|hone)/) ? 'ios' : (ua.match(/(?:webos|android)/) || platform.match(/mac|win|linux/) || ['other'])[0]
+        }
+      };
+      browser[browser.name] = true;
+      browser[browser.name + parseInt(browser.version, 10)] = true;
+      browser.platform[browser.platform.name] = true;
+      module.exports = browser;
+    }, {}],
+    3: [function (require, module, exports) {
+      var EventEmitter,
+          GIF,
+          browser,
+          extend = function extend(child, parent) {
+        for (var key in parent) {
+          if (hasProp.call(parent, key)) child[key] = parent[key];
+        }
+
+        function ctor() {
+          this.constructor = child;
+        }
+
+        ctor.prototype = parent.prototype;
+        child.prototype = new ctor();
+        child.__super__ = parent.prototype;
+        return child;
+      },
+          hasProp = {}.hasOwnProperty,
+          indexOf = [].indexOf || function (item) {
+        for (var i = 0, l = this.length; i < l; i++) {
+          if (i in this && this[i] === item) return i;
+        }
+
+        return -1;
+      },
+          slice = [].slice;
+
+      EventEmitter = require('events').EventEmitter;
+      browser = require('./browser.coffee');
+
+      GIF = function (superClass) {
+        var defaults, frameDefaults;
+        extend(GIF, superClass);
+        defaults = {
+          workerScript: 'gif.worker.js',
+          workers: 2,
+          repeat: 0,
+          background: '#fff',
+          quality: 10,
+          width: null,
+          height: null,
+          transparent: null,
+          debug: false,
+          dither: false
+        };
+        frameDefaults = {
+          delay: 500,
+          copy: false
+        };
+
+        function GIF(options) {
+          var base, key, value;
+          this.running = false;
+          this.options = {};
+          this.frames = [];
+          this.freeWorkers = [];
+          this.activeWorkers = [];
+          this.setOptions(options);
+
+          for (key in defaults) {
+            value = defaults[key];
+
+            if ((base = this.options)[key] == null) {
+              base[key] = value;
+            }
+          }
+        }
+
+        GIF.prototype.setOption = function (key, value) {
+          this.options[key] = value;
+
+          if (this._canvas != null && (key === 'width' || key === 'height')) {
+            return this._canvas[key] = value;
+          }
+        };
+
+        GIF.prototype.setOptions = function (options) {
+          var key, results, value;
+          results = [];
+
+          for (key in options) {
+            if (!hasProp.call(options, key)) continue;
+            value = options[key];
+            results.push(this.setOption(key, value));
+          }
+
+          return results;
+        };
+
+        GIF.prototype.addFrame = function (image, options) {
+          var frame, key;
+
+          if (options == null) {
+            options = {};
+          }
+
+          frame = {};
+          frame.transparent = this.options.transparent;
+
+          for (key in frameDefaults) {
+            frame[key] = options[key] || frameDefaults[key];
+          }
+
+          if (this.options.width == null) {
+            this.setOption('width', image.width);
+          }
+
+          if (this.options.height == null) {
+            this.setOption('height', image.height);
+          }
+
+          if (typeof ImageData !== 'undefined' && ImageData !== null && image instanceof ImageData) {
+            frame.data = image.data;
+          } else if (typeof CanvasRenderingContext2D !== 'undefined' && CanvasRenderingContext2D !== null && image instanceof CanvasRenderingContext2D || typeof WebGLRenderingContext !== 'undefined' && WebGLRenderingContext !== null && image instanceof WebGLRenderingContext) {
+            if (options.copy) {
+              frame.data = this.getContextData(image);
+            } else {
+              frame.context = image;
+            }
+          } else if (image.childNodes != null) {
+            if (options.copy) {
+              frame.data = this.getImageData(image);
+            } else {
+              frame.image = image;
+            }
+          } else {
+            throw new Error('Invalid image');
+          }
+
+          return this.frames.push(frame);
+        };
+
+        GIF.prototype.render = function () {
+          var i, j, numWorkers, ref;
+
+          if (this.running) {
+            throw new Error('Already running');
+          }
+
+          if (this.options.width == null || this.options.height == null) {
+            throw new Error('Width and height must be set prior to rendering');
+          }
+
+          this.running = true;
+          this.nextFrame = 0;
+          this.finishedFrames = 0;
+
+          this.imageParts = function () {
+            var j, ref, results;
+            results = [];
+
+            for (i = j = 0, ref = this.frames.length; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
+              results.push(null);
+            }
+
+            return results;
+          }.call(this);
+
+          numWorkers = this.spawnWorkers();
+
+          if (this.options.globalPalette === true) {
+            this.renderNextFrame();
+          } else {
+            for (i = j = 0, ref = numWorkers; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
+              this.renderNextFrame();
+            }
+          }
+
+          this.emit('start');
+          return this.emit('progress', 0);
+        };
+
+        GIF.prototype.abort = function () {
+          var worker;
+
+          while (true) {
+            worker = this.activeWorkers.shift();
+
+            if (worker == null) {
+              break;
+            }
+
+            this.log('killing active worker');
+            worker.terminate();
+          }
+
+          this.running = false;
+          return this.emit('abort');
+        };
+
+        GIF.prototype.spawnWorkers = function () {
+          var j, numWorkers, ref, results;
+          numWorkers = Math.min(this.options.workers, this.frames.length);
+          (function () {
+            results = [];
+
+            for (var j = ref = this.freeWorkers.length; ref <= numWorkers ? j < numWorkers : j > numWorkers; ref <= numWorkers ? j++ : j--) {
+              results.push(j);
+            }
+
+            return results;
+          }).apply(this).forEach(function (_this) {
+            return function (i) {
+              var worker;
+
+              _this.log('spawning worker ' + i);
+
+              worker = new Worker(_this.options.workerScript);
+
+              worker.onmessage = function (event) {
+                _this.activeWorkers.splice(_this.activeWorkers.indexOf(worker), 1);
+
+                _this.freeWorkers.push(worker);
+
+                return _this.frameFinished(event.data);
+              };
+
+              return _this.freeWorkers.push(worker);
+            };
+          }(this));
+          return numWorkers;
+        };
+
+        GIF.prototype.frameFinished = function (frame) {
+          var i, j, ref;
+          this.log('frame ' + frame.index + ' finished - ' + this.activeWorkers.length + ' active');
+          this.finishedFrames++;
+          this.emit('progress', this.finishedFrames / this.frames.length);
+          this.imageParts[frame.index] = frame;
+
+          if (this.options.globalPalette === true) {
+            this.options.globalPalette = frame.globalPalette;
+            this.log('global palette analyzed');
+
+            if (this.frames.length > 2) {
+              for (i = j = 1, ref = this.freeWorkers.length; 1 <= ref ? j < ref : j > ref; i = 1 <= ref ? ++j : --j) {
+                this.renderNextFrame();
+              }
+            }
+          }
+
+          if (indexOf.call(this.imageParts, null) >= 0) {
+            return this.renderNextFrame();
+          } else {
+            return this.finishRendering();
+          }
+        };
+
+        GIF.prototype.finishRendering = function () {
+          var data, frame, i, image, j, k, l, len, len1, len2, len3, offset, page, ref, ref1, ref2;
+          len = 0;
+          ref = this.imageParts;
+
+          for (j = 0, len1 = ref.length; j < len1; j++) {
+            frame = ref[j];
+            len += (frame.data.length - 1) * frame.pageSize + frame.cursor;
+          }
+
+          len += frame.pageSize - frame.cursor;
+          this.log('rendering finished - filesize ' + Math.round(len / 1e3) + 'kb');
+          data = new Uint8Array(len);
+          offset = 0;
+          ref1 = this.imageParts;
+
+          for (k = 0, len2 = ref1.length; k < len2; k++) {
+            frame = ref1[k];
+            ref2 = frame.data;
+
+            for (i = l = 0, len3 = ref2.length; l < len3; i = ++l) {
+              page = ref2[i];
+              data.set(page, offset);
+
+              if (i === frame.data.length - 1) {
+                offset += frame.cursor;
+              } else {
+                offset += frame.pageSize;
+              }
+            }
+          }
+
+          image = new Blob([data], {
+            type: 'image/gif'
+          });
+          return this.emit('finished', image, data);
+        };
+
+        GIF.prototype.renderNextFrame = function () {
+          var frame, task, worker;
+
+          if (this.freeWorkers.length === 0) {
+            throw new Error('No free workers');
+          }
+
+          if (this.nextFrame >= this.frames.length) {
+            return;
+          }
+
+          frame = this.frames[this.nextFrame++];
+          worker = this.freeWorkers.shift();
+          task = this.getTask(frame);
+          this.log('starting frame ' + (task.index + 1) + ' of ' + this.frames.length);
+          this.activeWorkers.push(worker);
+          return worker.postMessage(task);
+        };
+
+        GIF.prototype.getContextData = function (ctx) {
+          return ctx.getImageData(0, 0, this.options.width, this.options.height).data;
+        };
+
+        GIF.prototype.getImageData = function (image) {
+          var ctx;
+
+          if (this._canvas == null) {
+            this._canvas = document.createElement('canvas');
+            this._canvas.width = this.options.width;
+            this._canvas.height = this.options.height;
+          }
+
+          ctx = this._canvas.getContext('2d');
+          ctx.setFill = this.options.background;
+          ctx.fillRect(0, 0, this.options.width, this.options.height);
+          ctx.drawImage(image, 0, 0);
+          return this.getContextData(ctx);
+        };
+
+        GIF.prototype.getTask = function (frame) {
+          var index, task;
+          index = this.frames.indexOf(frame);
+          task = {
+            index: index,
+            last: index === this.frames.length - 1,
+            delay: frame.delay,
+            transparent: frame.transparent,
+            width: this.options.width,
+            height: this.options.height,
+            quality: this.options.quality,
+            dither: this.options.dither,
+            globalPalette: this.options.globalPalette,
+            repeat: this.options.repeat,
+            canTransfer: browser.name === 'chrome'
+          };
+
+          if (frame.data != null) {
+            task.data = frame.data;
+          } else if (frame.context != null) {
+            task.data = this.getContextData(frame.context);
+          } else if (frame.image != null) {
+            task.data = this.getImageData(frame.image);
+          } else {
+            throw new Error('Invalid frame');
+          }
+
+          return task;
+        };
+
+        GIF.prototype.log = function () {
+          var args;
+          args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+
+          if (!this.options.debug) {
+            return;
+          }
+
+          return console.log.apply(console, args);
+        };
+
+        return GIF;
+      }(EventEmitter);
+
+      module.exports = GIF;
+    }, {
+      './browser.coffee': 2,
+      events: 1
+    }]
+  }, {}, [3])(3);
+});
+},{}],"src/CanvasWriter/helpers.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2888,6 +3562,7 @@ var Paper = /*#__PURE__*/function () {
     this._fontColor = (presets === null || presets === void 0 ? void 0 : presets.fontColor) || '#500000';
     this.randomOpacity = typeof (presets === null || presets === void 0 ? void 0 : presets.randomOpacity) === 'boolean' ? presets.randomOpacity : true; //can't use same method as others with booleans
 
+    this.pageColor = (presets === null || presets === void 0 ? void 0 : presets.pageColor) || '#ffffff';
     this.init();
   }
 
@@ -3051,10 +3726,6 @@ var Paper = /*#__PURE__*/function () {
     value: function refreshCanvas() {
       // recallibarate all variables and repaint
       // called by most setters (like a react dep array kinda thing)
-      // this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
-      this.ctx.fillStyle = 'green';
-      console.log('refresing');
-      this.ctx.fillRect(0, 0, this._dimensions.width, this._dimensions.heighth);
       this.canvas.width = this._dimensions.w;
       this.canvas.height = this._dimensions.h; // console.log(this.canvas.clientHeight);
       // this.canvas.width =
@@ -3069,7 +3740,12 @@ var Paper = /*#__PURE__*/function () {
       _classPrivateFieldSet(this, _grid, {
         x: (this._dimensions.w - 2 * _classPrivateFieldGet(this, _padding).x) / (this._letterSpacing * _classPrivateFieldGet(this, _fontSize)),
         y: this._dimensions.h / (this._lineHeight * _classPrivateFieldGet(this, _fontSize))
-      });
+      }); // this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
+
+
+      this.ctx.fillStyle = this.pageColor;
+      console.log('refresing');
+      this.ctx.fillRect(0, 0, this._dimensions.w, this._dimensions.h);
     } // ---End exposed methods --------------------------------------------
 
   }, {
@@ -3321,6 +3997,7 @@ var CanvasWriter = /*#__PURE__*/function () {
           l_color = DOMControls.l_color,
           l_opacity = DOMControls.l_opacity,
           t_color = DOMControls.t_color,
+          t_page_color = DOMControls.t_page_color,
           t_line_height = DOMControls.t_line_height,
           t_letter_spacing = DOMControls.t_letter_spacing,
           t_font_scale = DOMControls.t_font_scale,
@@ -3340,6 +4017,7 @@ var CanvasWriter = /*#__PURE__*/function () {
       };
       var textControls = {
         t_color: t_color,
+        t_page_color: t_page_color,
         t_line_height: t_line_height,
         t_letter_spacing: t_letter_spacing,
         t_font_scale: t_font_scale,
@@ -3374,6 +4052,7 @@ var CanvasWriter = /*#__PURE__*/function () {
 
       var addTextControlListeners = function addTextControlListeners(textControls) {
         var t_color = textControls.t_color,
+            t_page_color = textControls.t_page_color,
             t_line_height = textControls.t_line_height,
             t_letter_spacing = textControls.t_letter_spacing,
             t_font_scale = textControls.t_font_scale,
@@ -3445,10 +4124,17 @@ var CanvasWriter = /*#__PURE__*/function () {
           console.log(e.target.value);
 
           _this2.renderLastText();
+        };
+
+        var handlePageColorInput = function handlePageColorInput(e) {
+          _this2.paper.pageColor = e.target.value;
+
+          _this2.renderLastText();
         }; //Add listeners
 
 
         t_color === null || t_color === void 0 ? void 0 : t_color.addEventListener('input', handleTextColorInput);
+        t_page_color === null || t_page_color === void 0 ? void 0 : t_page_color.addEventListener('input', handlePageColorInput);
         t_line_height === null || t_line_height === void 0 ? void 0 : t_line_height.addEventListener('input', handleLineHeightRange);
         t_letter_spacing === null || t_letter_spacing === void 0 ? void 0 : t_letter_spacing.addEventListener('input', handleLetterSpacingRange);
         t_font_scale === null || t_font_scale === void 0 ? void 0 : t_font_scale.addEventListener('input', handleFontScaleRange);
@@ -3460,9 +4146,11 @@ var CanvasWriter = /*#__PURE__*/function () {
       };
 
       var syncInitial = function syncInitial(DOMControls) {
-        var t_color = DOMControls.t_color; //   console.log('tc', t_color);
+        var t_color = DOMControls.t_color,
+            t_page_color = DOMControls.t_page_color; //   console.log('tc', t_color);
 
         t_color && (t_color.value = _this2.paper.fontColor);
+        t_page_color && (t_page_color.value = _this2.paper.pageColor);
       };
 
       addTextControlListeners(textControls);
@@ -3517,6 +4205,8 @@ var _CanvasWriter2 = _interopRequireDefault(require("../CanvasWriter"));
 
 var _helpers = require("../CanvasWriter/helpers");
 
+var _gif = _interopRequireDefault(require("../gif.js/gif"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -3540,6 +4230,8 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function exportVid(blob) {
   var vid = document.createElement('video');
@@ -3573,6 +4265,40 @@ var GIFWriter = /*#__PURE__*/function (_CanvasWriter) {
     _classCallCheck(this, GIFWriter);
 
     _this = _super.call(this, options);
+
+    _defineProperty(_assertThisInitialized(_this), "animate", function (onAnimationEnd, onFrame) {
+      var idx = _this.startIndex;
+      var history = _this.editor.history;
+      console.log(history); //set letters visible at random intervals for natural typing effect
+
+      var type = function type() {
+        clearTimeout(_this.timer);
+        var speed = _this.animationSpeed * 1000;
+        var variance = _this.animationSpeed * 500;
+        var interval = (0, _helpers.getRandomInt)(speed - variance, speed + variance);
+
+        if (idx < history.length) {
+          _this.timer = setTimeout(function () {
+            var historyText = history[idx];
+
+            _this.paper.refreshCanvas();
+
+            _this.paper.renderText(historyText, historyText.overwrite);
+
+            onFrame && onFrame();
+            idx++;
+            type();
+          }, interval);
+        } else {
+          clearTimeout(_this.timer);
+          onAnimationEnd && onAnimationEnd();
+          return;
+        }
+      };
+
+      type();
+    });
+
     _this.timer = null;
     _this.animationSpeed = 0.1;
     _this.startIndex = 0;
@@ -3592,41 +4318,6 @@ var GIFWriter = /*#__PURE__*/function (_CanvasWriter) {
 
 
   _createClass(GIFWriter, [{
-    key: "animate",
-    value: function animate(onAnimationEnd) {
-      var _this2 = this;
-
-      var idx = this.startIndex;
-      var history = this.editor.history;
-      console.log(history); //set letters visible at random intervals for natural typing effect
-
-      var type = function type() {
-        clearTimeout(_this2.timer);
-        var speed = _this2.animationSpeed * 1000;
-        var variance = _this2.animationSpeed * 500;
-        var interval = (0, _helpers.getRandomInt)(speed - variance, speed + variance);
-
-        if (idx < history.length) {
-          _this2.timer = setTimeout(function () {
-            var historyText = history[idx];
-
-            _this2.paper.refreshCanvas();
-
-            _this2.paper.renderText(historyText, historyText.overwrite);
-
-            idx++;
-            type();
-          }, interval);
-        } else {
-          clearTimeout(_this2.timer);
-          onAnimationEnd && onAnimationEnd();
-          return;
-        }
-      };
-
-      type();
-    }
-  }, {
     key: "record",
     value: function record() {
       var chunks = []; // here we will store our recorded media chunks (Blobs)
@@ -3658,6 +4349,39 @@ var GIFWriter = /*#__PURE__*/function (_CanvasWriter) {
       }
 
       this.animate(onAnimationEnd);
+    }
+  }, {
+    key: "recordGif",
+    value: function recordGif() {
+      var _this2 = this;
+
+      console.log('recording gif'); // https://github.com/jnordberg/gif.js/
+      //see dithering / quality 
+
+      var gif = new _gif.default({
+        workers: 4,
+        workerScript: '/gif.js/gif.worker.js',
+        width: this.paper.dimensions.w,
+        height: this.paper.dimensions.h
+      });
+      gif.on('finished', function (blob) {
+        var img = new Image();
+        img.src = URL.createObjectURL(blob);
+        document.body.append(img);
+      });
+
+      var onAnimationEnd = function onAnimationEnd() {
+        gif.render();
+      };
+
+      var onFrame = function onFrame() {
+        gif.addFrame(_this2.paper.ctx, {
+          copy: true,
+          delay: 200
+        });
+      };
+
+      this.animate(onAnimationEnd, onFrame);
     }
   }, {
     key: "saveImage",
@@ -3708,16 +4432,19 @@ var GIFWriter = /*#__PURE__*/function (_CanvasWriter) {
           _this3.record();
         };
 
-        var handleStartRecordGif = function handleStartRecordGif(e) {// this.record();
+        var handleStartRecordGif = function handleStartRecordGif(e) {
+          _this3.recordGif();
         };
 
         var handleSaveImage = function handleSaveImage(e) {
           _this3.saveImage();
-        };
+        }; //animation
+
 
         a_start === null || a_start === void 0 ? void 0 : a_start.addEventListener('click', handleStartAnimation);
         a_start_idx === null || a_start_idx === void 0 ? void 0 : a_start_idx.addEventListener('input', handleStartIndexRange);
-        a_speed === null || a_speed === void 0 ? void 0 : a_speed.addEventListener('input', handleAnimationSpeedRange);
+        a_speed === null || a_speed === void 0 ? void 0 : a_speed.addEventListener('input', handleAnimationSpeedRange); //saving
+
         s_record === null || s_record === void 0 ? void 0 : s_record.addEventListener('click', handleStartRecordVideo);
         s_image === null || s_image === void 0 ? void 0 : s_image.addEventListener('click', handleSaveImage);
         s_gif === null || s_gif === void 0 ? void 0 : s_gif.addEventListener('click', handleStartRecordGif);
@@ -3732,10 +4459,12 @@ var GIFWriter = /*#__PURE__*/function (_CanvasWriter) {
 }(_CanvasWriter2.default);
 
 exports.default = GIFWriter;
-},{"../CanvasWriter":"src/CanvasWriter/index.js","../CanvasWriter/helpers":"src/CanvasWriter/helpers.js"}],"index.js":[function(require,module,exports) {
+},{"../CanvasWriter":"src/CanvasWriter/index.js","../CanvasWriter/helpers":"src/CanvasWriter/helpers.js","../gif.js/gif":"src/gif.js/gif.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 require("./styles.scss");
+
+require("./src/gif.js/gif");
 
 var _CanvasWriter = _interopRequireDefault(require("./src/CanvasWriter"));
 
@@ -3754,6 +4483,7 @@ var DOMElements = {
   l_opacity: document.getElementById('letter-o'),
   //text controls
   t_color: document.getElementById('text-color'),
+  t_page_color: document.getElementById('page-color'),
   t_line_height: document.getElementById('line-height'),
   t_letter_spacing: document.getElementById('letter-spacing'),
   t_font_scale: document.getElementById('font-scale'),
@@ -3789,7 +4519,7 @@ function main() {
 }
 
 main();
-},{"./styles.scss":"styles.scss","./src/CanvasWriter":"src/CanvasWriter/index.js","./src/GIFWriter/GIFWriter":"src/GIFWriter/GIFWriter.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./styles.scss":"styles.scss","./src/gif.js/gif":"src/gif.js/gif.js","./src/CanvasWriter":"src/CanvasWriter/index.js","./src/GIFWriter/GIFWriter":"src/GIFWriter/GIFWriter.js"}],"../../.nvm/versions/node/v12.16.3/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3817,7 +4547,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36199" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "38951" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

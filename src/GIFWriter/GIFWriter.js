@@ -1,5 +1,6 @@
 import CanvasWriter from '../CanvasWriter';
 import { getRandomInt } from '../CanvasWriter/helpers';
+import GIF from '../gif.js/gif';
 
 function exportVid(blob) {
   const vid = document.createElement('video');
@@ -42,7 +43,7 @@ export default class GIFWriter extends CanvasWriter {
 
   // onRecorded // onSaved callbacks [probs used to update UI]
 
-  animate(onAnimationEnd) {
+  animate = (onAnimationEnd, onFrame) => {
     let idx = this.startIndex;
     let history = this.editor.history;
     console.log(history);
@@ -59,6 +60,7 @@ export default class GIFWriter extends CanvasWriter {
           let historyText = history[idx];
           this.paper.refreshCanvas();
           this.paper.renderText(historyText, historyText.overwrite);
+          onFrame && onFrame();
           idx++;
           type();
         }, interval);
@@ -70,7 +72,7 @@ export default class GIFWriter extends CanvasWriter {
       }
     };
     type();
-  }
+  };
 
   record() {
     const chunks = []; // here we will store our recorded media chunks (Blobs)
@@ -93,6 +95,35 @@ export default class GIFWriter extends CanvasWriter {
     }
 
     this.animate(onAnimationEnd);
+  }
+
+  recordGif() {
+    console.log('recording gif');
+      // https://github.com/jnordberg/gif.js/
+      //see dithering / quality 
+    let gif = new GIF({
+      workers: 4,
+      workerScript: '/gif.js/gif.worker.js',
+      width: this.paper.dimensions.w,
+      height: this.paper.dimensions.h,
+    });
+
+    gif.on('finished', (blob) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(blob);
+      document.body.append(img);
+    });
+
+    const onAnimationEnd = () => {
+      gif.render();
+    };
+
+    const onFrame = () => {
+    
+      gif.addFrame(this.paper.ctx, { copy: true, delay: 200 });
+    };
+
+    this.animate(onAnimationEnd, onFrame);
   }
 
   saveImage() {
@@ -129,15 +160,18 @@ export default class GIFWriter extends CanvasWriter {
         this.record();
       };
       const handleStartRecordGif = (e) => {
-        // this.record();
+        this.recordGif();
       };
       const handleSaveImage = (e) => {
         this.saveImage();
       };
 
+      //animation
       a_start?.addEventListener('click', handleStartAnimation);
       a_start_idx?.addEventListener('input', handleStartIndexRange);
       a_speed?.addEventListener('input', handleAnimationSpeedRange);
+
+      //saving
       s_record?.addEventListener('click', handleStartRecordVideo);
       s_image?.addEventListener('click', handleSaveImage);
       s_gif?.addEventListener('click', handleStartRecordGif);

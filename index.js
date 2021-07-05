@@ -1,4 +1,6 @@
 import './styles.scss';
+
+import './src/gif.js/gif';
 import CanvasWriter from './src/CanvasWriter';
 import GIFWriter from './src/GIFWriter/GIFWriter';
 console.clear();
@@ -13,6 +15,7 @@ const DOMElements = {
   l_opacity: document.getElementById('letter-o'),
   //text controls
   t_color: document.getElementById('text-color'),
+  t_page_color: document.getElementById('page-color'),
   t_line_height: document.getElementById('line-height'),
   t_letter_spacing: document.getElementById('letter-spacing'),
   t_font_scale: document.getElementById('font-scale'),
