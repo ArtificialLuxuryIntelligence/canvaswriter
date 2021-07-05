@@ -30,6 +30,8 @@ const DOMElements = {
 
   //animation controls
   a_start: document.getElementById('animation-start'),
+  a_start2: document.getElementById('animation-start2'),
+
   a_start_idx: document.getElementById('animation-start-index'),
   a_speed: document.getElementById('animation-speed'),
   // saving controls

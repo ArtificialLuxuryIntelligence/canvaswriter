@@ -86,11 +86,10 @@ export default class GIFWriter extends CanvasWriter {
     let overwrite = text.overwrite;
 
     const getNextState = (text, groupIndex, entryIndex) => {
+      // =/ it works..
       if (typeof groupIndex === 'boolean') {
-        //it works..
         return [false];
       }
-      console.log(groupIndex, entryIndex);
       let newText = cloneDeep(text);
 
       let nextGroupIndex = groupIndex;
@@ -224,12 +223,21 @@ export default class GIFWriter extends CanvasWriter {
   }
 
   addGifControlEventListeners(DOMControls) {
-    const { a_start_idx, a_start, a_speed, s_record, s_image, s_gif } =
-      DOMControls; //etc etc/
+    const {
+      a_start_idx,
+      a_start,
+      a_start2,
+      a_speed,
+      s_record,
+      s_image,
+      s_gif,
+    } = DOMControls; //etc etc/
 
     const addControlListeners = () => {
       const handleStartAnimation = (e) => {
-        // this.animate();
+        this.animate();
+      };
+      const handleStartAnimation2 = (e) => {
         this.animateCurrent();
       };
       const handleStartIndexRange = (e) => {
@@ -253,6 +261,8 @@ export default class GIFWriter extends CanvasWriter {
 
       //animation
       a_start?.addEventListener('click', handleStartAnimation);
+      a_start2?.addEventListener('click', handleStartAnimation2);
+
       a_start_idx?.addEventListener('input', handleStartIndexRange);
       a_speed?.addEventListener('input', handleAnimationSpeedRange);
 
