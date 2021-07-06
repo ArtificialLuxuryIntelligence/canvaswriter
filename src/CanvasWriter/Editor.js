@@ -1,6 +1,6 @@
 // Text
 
-import { clone } from './helpers';
+import { clone } from '../helpers';
 import cloneDeep from 'lodash.clonedeep';
 
 export default class Editor {

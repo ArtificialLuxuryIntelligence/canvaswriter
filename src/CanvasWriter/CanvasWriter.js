@@ -5,15 +5,16 @@ import Paper from './Paper';
 export default class CanvasWriter {
   constructor(options) {
     console.log('options', options);
+
     const { elements, settings, presets } = options;
     const { canvas, canvas2 = null } = elements;
 
     this.paper = new Paper(canvas, presets);
     this.editor = new Editor(presets);
-
     this.DOMControls = elements;
     this.settings = settings;
-
+    // settings not used but leave for now (could be used to autocreate the DOMElements? in a given container?)
+    // this would then require all ranges to have min/max [although range:{min:1,max:5,default:4}] might be better
     this.init();
   }
 

@@ -1,0 +1,44 @@
+body {
+  font-family: sans-serif;
+  height: 100vh;
+  width: 100vw;
+  // display: grid;
+  // place-items: center;
+}
+
+#app {
+  // display: flex;
+
+  .controls {
+    // width:auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    > div {
+      border: 1px solid #ccc;
+      padding: 0.2em;
+      margin: 0.5em auto;
+      width: 80%;
+      display: block;
+      line-height: 1;
+    }
+
+    label,
+    button {
+      margin: 1em;
+    }
+
+    label {
+      white-space: nowrap;
+    }
+  }
+  .canvas-container {
+    display: flex;
+    padding: 1em 0 5em;
+    #paper {
+      border: 3px solid rgba(146, 146, 146, 0.425);
+      max-width: 90vw;
+      margin: 0 auto;
+    }
+  }
+}

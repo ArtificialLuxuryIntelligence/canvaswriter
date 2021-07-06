@@ -1,7 +1,7 @@
 // Render a history state of editor
 
 import { initAlphaNumStyles } from './alphaNumStyles';
-import { clamp, getRandomArbitrary, hex2rgba } from './helpers';
+import { clamp, getRandomArbitrary, hex2rgba } from '../helpers';
 
 export default class Paper {
   // probably shouldn't mix _ and # but the _values are exposed thru getters...

@@ -1,6 +1,6 @@
 import cloneDeep from 'lodash.clonedeep';
 import CanvasWriter from '../CanvasWriter';
-import { getRandomInt } from '../CanvasWriter/helpers';
+import { getRandomInt } from '../helpers';
 import GIF from '../gif.js/gif';
 
 function exportVid(blob) {
@@ -193,7 +193,10 @@ export default class GIFWriter extends CanvasWriter {
     };
 
     const onFrame = () => {
-      gif.addFrame(this.paper.ctx, { copy: true, delay: 200 });
+      gif.addFrame(this.paper.ctx, {
+        copy: true,
+        delay: this.animationSpeed * 1000,
+      });
     };
 
     this.animate(onAnimationEnd, onFrame);

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head><link rel="stylesheet" href="/index.886c3751.css">
+  <head><link rel="stylesheet" href="/index.b119a87d.css">
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=
@@ -13,14 +13,13 @@
   </head>
   <body>
     <div id="app">
-      <div id="controls">
+      <div class="controls">
         <div class="page-controls">
           <label> Page colour <input id="page-color" type="color"> </label>
           <label>
             Page width
             <input id="page-width" type="range" min="200" max="1200" step="1">
           </label>
-
           <label>
             Page height
             <input id="page-height" type="range" min="200" max="1200" step="1">
@@ -28,38 +27,29 @@
         </div>
         <div class="text-controls">
           <button id="overwrite">Overwrite</button>
-          <button id="undo">Undo</button>
-          <button id="redo">redo</button>
-
+          <button id="undo">Undo</button> <button id="redo">redo</button>
           <label> Text colour <input id="text-color" type="color"> </label>
-
           <label>
             Line height
-            <input id="line-height" type="range" min="0" max="3" step="0.1">
+            <input id="line-height" type="range" min="0" max="3" step="0.02">
           </label>
-
           <label>
             Letter spacing
             <input id="letter-spacing" type="range" min="0.01" max="1" step="0.01">
           </label>
-
           <label>
             Font scale
             <input id="font-scale" type="range" min="0.5" max="4" step="0.01" value="1">
           </label>
-
           <label>
-            Wonk
-            <input id="broken" type="range" min="0" max="1" step="0.05">
+            Wonk <input id="broken" type="range" min="0" max="1" step="0.05">
           </label>
         </div>
-
         <div class="letter-controls">
           <label>
             Letter colour
             <input id="letter-color" data-key="color" type="color">
           </label>
-
           <label>
             X
             <input id="letter-x" data-key="x" type="range" min="-1" max="1" step="0.05">
@@ -81,11 +71,13 @@
             <input id="letter-o" data-key="opacity" type="range" min="0.1" max="1" step="0.05">
           </label>
         </div>
+      </div>
+      <div class="canvas-container"><canvas id="paper"></canvas></div>
 
+      <div class="controls">
         <div class="animation-controls">
           <button id="animation-start">Start animation</button>
           <button id="animation-start2">Start animation linear</button>
-
           <label>
             Faster
             <input id="animation-speed" type="range" min="0.02" max="0.4" step="0.02">
@@ -102,11 +94,7 @@
           <button id="save-image">Save image</button>
         </div>
       </div>
-
-      <div class="canvas-container">
-        <canvas id="paper"></canvas>
-      </div>
     </div>
-    <script src="/index.fd532818.js"></script>
+    <script src="/index.3fafb3e2.js"></script>
   </body>
 </html>

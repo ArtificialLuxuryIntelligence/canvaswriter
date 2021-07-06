@@ -1,4 +1,4 @@
-import { getRandomArbitrary } from './helpers';
+import { getRandomArbitrary } from '../helpers';
 
 const alphaNums =
   '`1234567890-=qwertyuiop[]asdfghjkl;\'zxcvbnm,./¬!"£$%^&*()+QWERTYUIOP{}~ASDFGHJKL:@ZXCVBNM<>?';

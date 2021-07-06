@@ -1,10 +1,12 @@
 import './styles.scss';
-import './src/gif.js/gif';
-import CanvasWriter from './src/CanvasWriter';
-import GIFWriter from './src/GIFWriter/GIFWriter';
-console.clear();
+// import CanvasWriter from './CanvasWriter';
+import GIFWriter from './GIFWriter';
 
 const DOMElements = {
+   
+  //canvas
+  canvas: document.getElementById('paper'),
+
   //letter controls
   l_rotation_control: document.getElementById('letter-r'),
   l_x_control: document.getElementById('letter-x'),
@@ -12,6 +14,7 @@ const DOMElements = {
   l_scale_control: document.getElementById('letter-s'),
   l_color: document.getElementById('letter-color'),
   l_opacity: document.getElementById('letter-o'),
+
   //text controls
   t_color: document.getElementById('text-color'),
   t_line_height: document.getElementById('line-height'),
@@ -31,7 +34,6 @@ const DOMElements = {
   //animation controls
   a_start: document.getElementById('animation-start'),
   a_start2: document.getElementById('animation-start2'),
-
   a_start_idx: document.getElementById('animation-start-index'),
   a_speed: document.getElementById('animation-speed'),
   // saving controls
@@ -39,8 +41,7 @@ const DOMElements = {
   s_record: document.getElementById('record-vid'),
   s_gif: document.getElementById('record-gif'),
   s_image: document.getElementById('save-image'),
-  //canvas
-  canvas: document.getElementById('paper'),
+ 
 };
 
 function main() {
@@ -51,7 +52,7 @@ function main() {
   let Gwriter = new GIFWriter({
     elements: DOMElements,
     presets,
-    settings: {},
+    settings: {}, 
   });
   console.log(Gwriter);
   // console.log(canvasWriter);
