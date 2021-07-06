@@ -5,7 +5,7 @@
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "parcel serve ./src/index.html",
+    "dev": "parcel src/index.html",
     "build": "parcel build ./src/gif.js"
   },
   "keywords": [],
@@ -16,6 +16,9 @@
   },
   "devDependencies": {
     "@parcel/transformer-sass": "^2.0.0-beta.3.1",
+    "eslint": "^7.30.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4",
     "parcel": "^2.0.0-beta.3.1"
   }
 }

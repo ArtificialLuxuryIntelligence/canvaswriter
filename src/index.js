@@ -3,11 +3,10 @@ import './styles.scss';
 import GIFWriter from './GIFWriter';
 
 const DOMElements = {
-   
-  //canvas
+  // canvas
   canvas: document.getElementById('paper'),
 
-  //letter controls
+  // letter controls
   l_rotation_control: document.getElementById('letter-r'),
   l_x_control: document.getElementById('letter-x'),
   l_y_control: document.getElementById('letter-y'),
@@ -15,7 +14,7 @@ const DOMElements = {
   l_color: document.getElementById('letter-color'),
   l_opacity: document.getElementById('letter-o'),
 
-  //text controls
+  // text controls
   t_color: document.getElementById('text-color'),
   t_line_height: document.getElementById('line-height'),
   t_letter_spacing: document.getElementById('letter-spacing'),
@@ -24,14 +23,14 @@ const DOMElements = {
   t_overwrite: document.getElementById('overwrite'),
   t_undo: document.getElementById('undo'),
   t_redo: document.getElementById('redo'),
-  t_key: document, //detects key inputs
+  t_key: document, // detects key inputs
 
-  //page controls
+  // page controls
   p_color: document.getElementById('page-color'),
   p_width: document.getElementById('page-width'),
   p_height: document.getElementById('page-height'),
 
-  //animation controls
+  // animation controls
   a_start: document.getElementById('animation-start'),
   a_start2: document.getElementById('animation-start2'),
   a_start_idx: document.getElementById('animation-start-index'),
@@ -41,7 +40,6 @@ const DOMElements = {
   s_record: document.getElementById('record-vid'),
   s_gif: document.getElementById('record-gif'),
   s_image: document.getElementById('save-image'),
- 
 };
 
 function main() {
@@ -49,10 +47,10 @@ function main() {
     randomOpacity: true,
   };
   // let canvasWriter = new CanvasWriter({ elements: DOMElements, settings: {} });
-  let Gwriter = new GIFWriter({
+  const Gwriter = new GIFWriter({
     elements: DOMElements,
     presets,
-    settings: {}, 
+    settings: {},
   });
   console.log(Gwriter);
   // console.log(canvasWriter);

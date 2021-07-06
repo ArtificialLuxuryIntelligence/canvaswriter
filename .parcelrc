@@ -1,8 +1,4 @@
 {
   "extends": "@parcel/config-default",
-  "transformers": {
-    "/src/gif.js": [
-      "@parcel/transformer-raw"
-    ]
-  }
+
 }

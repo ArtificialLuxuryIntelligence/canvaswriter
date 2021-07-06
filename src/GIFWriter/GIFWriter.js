@@ -16,7 +16,7 @@ function exportVid(blob) {
 }
 
 function exportPic(canvas) {
-  var image = canvas.toDataURL('image/png');
+  const image = canvas.toDataURL('image/png');
   console.log(image);
   const img = new Image();
   img.src = image;
@@ -34,7 +34,7 @@ export default class GIFWriter extends CanvasWriter {
     this.init_gifwriter();
   }
 
-  //more dom nodes :
+  // more dom nodes :
 
   // - output img/link /container < yeah! container to spit out results into (prepend?)
 
@@ -44,21 +44,21 @@ export default class GIFWriter extends CanvasWriter {
     clearTimeout(this.timer);
   }
 
-  //animates full history (from startIndex)
+  // animates full history (from startIndex)
   animate(onAnimationEnd, onFrame) {
     let idx = this.startIndex;
-    let history = this.editor.history;
+    const { history } = this.editor;
 
-    //set letters visible at random intervals for natural typing effect
+    // set letters visible at random intervals for natural typing effect
     const type = () => {
       clearTimeout(this.timer);
-      let speed = this.animationSpeed * 1000;
-      let variance = this.animationSpeed * 500;
-      let interval = getRandomInt(speed - variance, speed + variance);
+      const speed = this.animationSpeed * 1000;
+      const variance = this.animationSpeed * 500;
+      const interval = getRandomInt(speed - variance, speed + variance);
 
       if (idx < history.length) {
         this.timer = setTimeout(() => {
-          let historyText = history[idx];
+          const historyText = history[idx];
           this.paper.refreshCanvas();
           this.paper.renderText(historyText, historyText.overwrite);
           onFrame && onFrame();
@@ -68,37 +68,35 @@ export default class GIFWriter extends CanvasWriter {
       } else {
         clearTimeout(this.timer);
         onAnimationEnd && onAnimationEnd();
-
-        return;
       }
     };
     type();
   }
 
-  //animates last item (from start  -no option for otherwise yet)
+  // animates last item (from start  -no option for otherwise yet)
   animateCurrent(onAnimationEnd, onFrame) {
     // let idx = this.startIndex;
     let groupIndex = 0;
     let entryIndex = 0;
 
-    let text = this.editor.getLastHistory();
+    const text = this.editor.getLastHistory();
     console.log('text', text);
-    let overwrite = text.overwrite;
+    const { overwrite } = text;
 
     const getNextState = (text, groupIndex, entryIndex) => {
       // =/ it works..
       if (typeof groupIndex === 'boolean') {
         return [false];
       }
-      let newText = cloneDeep(text);
+      const newText = cloneDeep(text);
 
       let nextGroupIndex = groupIndex;
       let nextEntryIndex = entryIndex;
-      let group = text.groups[groupIndex];
-      let entries = group.entries;
+      const group = text.groups[groupIndex];
+      const { entries } = group;
 
-      let newGroups = cloneDeep(text.groups.slice(0, groupIndex + 1));
-      let newEntries = cloneDeep(
+      const newGroups = cloneDeep(text.groups.slice(0, groupIndex + 1));
+      const newEntries = cloneDeep(
         text.groups[groupIndex].entries.slice(0, entryIndex + 1)
       );
       newText.groups = newGroups;
@@ -118,14 +116,14 @@ export default class GIFWriter extends CanvasWriter {
       return [newText, nextGroupIndex, nextEntryIndex];
     };
 
-    //set letters visible at random intervals for natural typing effect
+    // set letters visible at random intervals for natural typing effect
     const type = () => {
       clearTimeout(this.timer);
-      let speed = this.animationSpeed * 1000;
-      let variance = this.animationSpeed * 500;
-      let interval = getRandomInt(speed - variance, speed + variance);
-      let next = getNextState(text, groupIndex, entryIndex);
-      let [nextText, nextGroupIndex, nextEntryIndex] = next;
+      const speed = this.animationSpeed * 1000;
+      const variance = this.animationSpeed * 500;
+      const interval = getRandomInt(speed - variance, speed + variance);
+      const next = getNextState(text, groupIndex, entryIndex);
+      const [nextText, nextGroupIndex, nextEntryIndex] = next;
 
       if (nextText) {
         this.timer = setTimeout(() => {
@@ -141,8 +139,6 @@ export default class GIFWriter extends CanvasWriter {
       } else {
         clearTimeout(this.timer);
         onAnimationEnd && onAnimationEnd();
-
-        return;
       }
     };
     type();
@@ -163,7 +159,7 @@ export default class GIFWriter extends CanvasWriter {
 
     function onAnimationEnd() {
       setTimeout(() => {
-        //stop the last frame from being missed..
+        // stop the last frame from being missed..
         rec.stop();
       }, 200);
     }
@@ -174,8 +170,8 @@ export default class GIFWriter extends CanvasWriter {
   recordGif() {
     console.log('recording gif');
     // https://github.com/jnordberg/gif.js/
-    //see dithering / quality
-    let gif = new GIF({
+    // see dithering / quality
+    const gif = new GIF({
       workers: 4,
       workerScript: '/gif.js/gif.worker.js',
       width: this.paper.dimensions.w,
@@ -203,7 +199,7 @@ export default class GIFWriter extends CanvasWriter {
   }
 
   saveImage() {
-    //save as img
+    // save as img
     exportPic(this.DOMControls.canvas);
   }
 
@@ -234,7 +230,7 @@ export default class GIFWriter extends CanvasWriter {
       s_record,
       s_image,
       s_gif,
-    } = DOMControls; //etc etc/
+    } = DOMControls; // etc etc/
 
     const addControlListeners = () => {
       const handleStartAnimation = (e) => {
@@ -262,14 +258,14 @@ export default class GIFWriter extends CanvasWriter {
         this.saveImage();
       };
 
-      //animation
+      // animation
       a_start?.addEventListener('click', handleStartAnimation);
       a_start2?.addEventListener('click', handleStartAnimation2);
 
       a_start_idx?.addEventListener('input', handleStartIndexRange);
       a_speed?.addEventListener('input', handleAnimationSpeedRange);
 
-      //saving
+      // saving
       s_record?.addEventListener('click', handleStartRecordVideo);
       s_image?.addEventListener('click', handleSaveImage);
       s_gif?.addEventListener('click', handleStartRecordGif);

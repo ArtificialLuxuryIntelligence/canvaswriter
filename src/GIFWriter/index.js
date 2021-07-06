@@ -1,4 +1,3 @@
-import GIFWriter from "./GIFWriter";
+import GIFWriter from './GIFWriter';
 
-
-export default GIFWriter
+export default GIFWriter;
