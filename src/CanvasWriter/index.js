@@ -1,5 +1,5 @@
 import CanvasWriter from './CanvasWriter';
-import Editor from './Editor';
+import Editor from './Editor/Editor';
 import Paper from './Paper';
 
 export default CanvasWriter;

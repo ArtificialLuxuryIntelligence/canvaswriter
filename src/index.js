@@ -20,9 +20,13 @@ const DOMElements = {
   t_letter_spacing: document.getElementById('letter-spacing'),
   t_font_scale: document.getElementById('font-scale'),
   t_broken: document.getElementById('broken'),
+  t_rand_opacity: document.getElementById('random-opacity'),
+
   t_overwrite: document.getElementById('overwrite'),
   t_undo: document.getElementById('undo'),
   t_redo: document.getElementById('redo'),
+  t_reset: document.getElementById('reset'),
+
   t_key: document, // detects key inputs
 
   // page controls
@@ -32,7 +36,7 @@ const DOMElements = {
 
   // animation controls
   a_start: document.getElementById('animation-start'),
-  a_start2: document.getElementById('animation-start2'),
+  a_history_toggle: document.getElementById('animate-history-toggle'),
   a_start_idx: document.getElementById('animation-start-index'),
   a_speed: document.getElementById('animation-speed'),
   // saving controls
@@ -44,7 +48,10 @@ const DOMElements = {
 
 function main() {
   const presets = {
-    randomOpacity: true,
+    //cf. defaults
+    // randomOpacity: true,
+    // overwrite: false,
+    // lineHeight: 0.1,
   };
   // let canvasWriter = new CanvasWriter({ elements: DOMElements, settings: {} });
   const Gwriter = new GIFWriter({

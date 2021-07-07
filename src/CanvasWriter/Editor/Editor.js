@@ -1,22 +1,27 @@
 // Text
 
-import { clone } from '../helpers';
 import cloneDeep from 'lodash.clonedeep';
+import HistoryState from './HistoryState';
+import Entry from './Entry';
+import EntryGroup from './EntryGroup';
+import { editorDefaults } from '../../defaultPresets';
 
 export default class Editor {
   constructor(presets = {}) {
-    this.paper = null;
+    const options = Object.assign(editorDefaults, presets);
 
+    this.paper = null;
     this.cursorIndex = 0;
-    this.history = [];
-    this.removedHistory = []; //undo functionality
-    //options
-    this._overwrite = presets?.overwrite || false;
-    this.maxHistory = presets?.maxHistory || 5000;
-    this.init();
+
+    this.removedHistory = []; // undo functionality
+    this.history = options.history;
+    // options
+    this._overwrite = options.overwrite;
+    this.maxHistory = options.maxHistory;
+    this.init_editor();
   }
 
-  init() {}
+  init_editor() {}
 
   get overwrite() {
     return this._overwrite;
@@ -35,7 +40,8 @@ export default class Editor {
   connect(paper) {
     this.paper = paper;
   }
-  //Handle adding entries
+
+  // Handle adding entries
   handleKeyInput(key, options = {}) {
     this.updateHistory(key, options);
     this.updateRemovedHistory(key);
@@ -43,32 +49,34 @@ export default class Editor {
 
     //
   }
-  undo() {
-    //TODO: set the cursor index in the Editor...
-    let history = [...this.history];
 
-    if (history.length >= 1) {
-      let removed = history.pop();
-
-      this.history = history;
-
-      if (removed) {
-        this.removedHistory.push(removed);
-        this.cursorIndex = removed.cursorIndex;
-      }
+  undo = () => {
+    const history = [...this.history];
+    const removed = history.pop();
+    this.history = history;
+    if (removed) {
+      this.removedHistory.push(removed);
+      this.cursorIndex = removed.cursorIndex - 1;
     }
-  }
+  };
+
   redo() {
-    let removedHistory = [...this.removedHistory];
-    let removed = removedHistory.pop();
+    const removedHistory = [...this.removedHistory];
+    const removed = removedHistory.pop();
     this.removedHistory = removedHistory;
     if (removed) {
       this.addToHistory(removed);
       this.cursorIndex = removed.cursorIndex;
     }
   }
+
+  reset() {
+    this.cursorIndex = 0;
+    this.history = [];
+  }
+
   getCurrentEntry() {
-    // TODO refresh styles if it hasn't been edited (styles get initiated at creation but not updated if global styles are changed i.e.wonk/textcol is changed)
+    // TODO refresh styles if it hasn't been edited (styles get init_editoriated at creation but not updated if global styles are changed i.e.wonk/textcol is changed)
     let entry;
     if (this._overwrite) {
       entry = this.getEntry(this.cursorIndex);
@@ -83,12 +91,12 @@ export default class Editor {
   }
 
   getEntry(index) {
-    //returns top letter of stack in top history entry
+    // returns top letter of stack in top history entry
     // NOTE: if there is a paper instance connected, then it will also load in the style of that letter
 
-    let last = this.getLastHistory();
-    let group = last.groups[index];
-    let entry = group?.getLastEntry();
+    const last = this.getLastHistory();
+    const group = last.groups[index];
+    const entry = group?.getLastEntry();
 
     // if (entry) {
     //   if (!entry.styles) {
@@ -104,16 +112,16 @@ export default class Editor {
   }
 
   // Internals --------------------------------------------
-  //Handle cursor movement
+  // Handle cursor movement
   incrCursor() {
-    let last = this.getLastHistory().groups;
+    const last = this.getLastHistory().groups;
     if (this.cursorIndex === null) {
       this.cursorIndex = 0;
       return;
     }
     if (this._overwrite) {
       if (this.cursorIndex < last.length) {
-        //?
+        // ?
         this.cursorIndex++;
       } else {
         return;
@@ -121,13 +129,13 @@ export default class Editor {
     }
     if (!this._overwrite) {
       if (this.cursorIndex < last.length - 1) {
-        //?
+        // ?
         this.cursorIndex++;
       } else {
-        return;
       }
     }
   }
+
   decrCursor() {
     if (this.cursorIndex === 0) {
       if (this._overwrite) {
@@ -141,29 +149,26 @@ export default class Editor {
   }
 
   nextCursorIndex() {
-    let last = this.getLastHistory().groups;
+    const last = this.getLastHistory().groups;
     if (this.cursorIndex === null) {
       return 0;
     }
     if (this._overwrite) {
       if (this.cursorIndex < last.length + 1) {
-        //?
+        // ?
         return this.cursorIndex + 1;
-      } else {
-        return;
       }
+      return;
     }
     if (!this._overwrite) {
       if (this.cursorIndex < last.length) {
         return this.cursorIndex + 1;
-      } else {
-        return;
       }
     }
   }
 
   getLastHistory() {
-    let last = this.history[this.history.length - 1] || new HistoryState();
+    const last = this.history[this.history.length - 1] || new HistoryState();
     return last;
   }
 
@@ -177,14 +182,14 @@ export default class Editor {
   // add new text to history
   updateHistory(key, options) {
     // console.log(this.cursorIndex);
-    //get last history item
-    let prevText = this.getLastHistory();
+    // get last history item
+    const prevText = this.getLastHistory();
 
-    //clone last state..
-    let text = cloneDeep(prevText);
+    // clone last state..
+    const text = cloneDeep(prevText);
 
     let entryGroup;
-    let entry = new Entry(key, {});
+    const entry = new Entry(key, {});
     if (this.paper) {
       entry.setStyles(this.paper.createEntryStyles(entry));
     }
@@ -194,13 +199,13 @@ export default class Editor {
       if (this._overwrite) {
         this.updateHistory('ArrowLeft', options);
         return;
-      } else {
-        if (this.cursorIndex === null) {
-          return;
-        }
-        text.remove(this.cursorIndex);
-        this.addToHistory(text);
       }
+      if (this.cursorIndex === null) {
+        return;
+      }
+      text.remove(this.cursorIndex);
+      this.addToHistory(text);
+
       return;
     }
 
@@ -212,11 +217,11 @@ export default class Editor {
     if (key.length === 1 || key === 'Enter') {
       // continue
     } else {
-      //don't handle other keys (e.g shift/esc/ctrl)
+      // don't handle other keys (e.g shift/esc/ctrl)
       return;
     }
 
-    //Handle ctrl, shift etc?
+    // Handle ctrl, shift etc?
 
     // Add to history
     if (!this.getCurrentEntry()) {
@@ -226,37 +231,35 @@ export default class Editor {
       // console.log('nnn', this.nextCursorIndex());
       text.insert(entryGroup, this.nextCursorIndex());
       this.addToHistory(text);
-      return;
-    } else {
-      if (this._overwrite) {
-        let n = this.nextCursorIndex();
-        // console.log('nextov', n);
-        // Add entry to group at current index
-        entryGroup = text.groups[this.cursorIndex];
-        if (entryGroup) {
-          entryGroup.add(entry);
-          text.replace(entryGroup, this.cursorIndex);
-        } else {
-          entryGroup = new EntryGroup(entry);
-          text.insert(entryGroup, this.nextCursorIndex());
-        }
-        this.addToHistory(text);
+    } else if (this._overwrite) {
+      const n = this.nextCursorIndex();
+      // console.log('nextov', n);
+      // Add entry to group at current index
+      entryGroup = text.groups[this.cursorIndex];
+      if (entryGroup) {
+        entryGroup.add(entry);
+        text.replace(entryGroup, this.cursorIndex);
       } else {
-        // Insert entry in entrygroup at next index
         entryGroup = new EntryGroup(entry);
-        let n = this.nextCursorIndex();
-        // console.log('next', n);
         text.insert(entryGroup, this.nextCursorIndex());
-        // if (this.cursorIndex === null) {
-        //   text.insert(entryGroup, this.nextCursorIndex());
-        // } else {
-        //   text.insert(entryGroup, this.cursorIndex);
-        // }
-
-        this.addToHistory(text);
       }
+      this.addToHistory(text);
+    } else {
+      // Insert entry in entrygroup at next index
+      entryGroup = new EntryGroup(entry);
+      const n = this.nextCursorIndex();
+      // console.log('next', n);
+      text.insert(entryGroup, this.nextCursorIndex());
+      // if (this.cursorIndex === null) {
+      //   text.insert(entryGroup, this.nextCursorIndex());
+      // } else {
+      //   text.insert(entryGroup, this.cursorIndex);
+      // }
+
+      this.addToHistory(text);
     }
   }
+
   updateRemovedHistory(key) {
     // you can't redo if you have add new letters
 
@@ -273,57 +276,58 @@ export default class Editor {
       this.removedHistory = [];
     }
   }
+
   // update cursor and overwrite values
   updateCursor(key, overwrite) {
     const updateLastHistoryCursor = () => {
-      let last = this.getLastHistory();
-      last.removeAllCursors();
-      //see below for fix required
+      const last = this.getLastHistory();
+      // last.removeAllCursors();
+      // // see below for fix required
 
-      if (last.groups.length && last.groups[this.cursorIndex]) {
-        // console.log('item at index');
-        last.groups[this.cursorIndex].cursor = true;
+      // if (last.groups.length && last.groups[this.cursorIndex]) {
+      //   // console.log('item at index');
+      //   last.groups[this.cursorIndex].cursor = true;
 
-        if (overwrite) {
-          if (
-            key === 'ArrowLeft' ||
-            key === 'ArrowRight' ||
-            key === 'Backspace'
-          ) {
-            last.cursorMovement = true;
-          }
-          if (key.length === 1) {
-            last.cursorMovement = false;
-          }
-        }
-        if (!overwrite) {
-          if (key === 'ArrowLeft' || key === 'ArrowRight') {
-            last.cursorMovement = true;
-          }
-          if (key.length === 1) {
-            last.cursorMovement = false;
-          }
-        }
-      } else {
-        // // console.log('no item at index');
-        // if (!overwrite) {
-        //   //   this.updateCursor(key, overwrite);
-        // }
-        // //add extra space at end?
-        // //FIX: currently adds too many
-        // if (overwrite) {
-        //   console.log('no', last.groups[this.cursorIndex - 1]);
-        //   //nothing at cursor index
-        //   //   last.insert(new EntryGroup(new Entry(' ', {})), this.cursorIndex);
-        //   //   last.groups[this.cursorIndex].cursor = true;
-        // }
-      }
+      //   if (overwrite) {
+      //     if (
+      //       key === 'ArrowLeft' ||
+      //       key === 'ArrowRight' ||
+      //       key === 'Backspace'
+      //     ) {
+      //       last.cursorMovement = true;
+      //     }
+      //     if (key.length === 1) {
+      //       last.cursorMovement = false;
+      //     }
+      //   }
+      //   if (!overwrite) {
+      //     if (key === 'ArrowLeft' || key === 'ArrowRight') {
+      //       last.cursorMovement = true;
+      //     }
+      //     if (key.length === 1) {
+      //       last.cursorMovement = false;
+      //     }
+      //   }
+      // } else {
+      //   // // console.log('no item at index');
+      //   // if (!overwrite) {
+      //   //   //   this.updateCursor(key, overwrite);
+      //   // }
+      //   // //add extra space at end?
+      //   // //FIX: currently adds too many
+      //   // if (overwrite) {
+      //   //   console.log('no', last.groups[this.cursorIndex - 1]);
+      //   //   //nothing at cursor index
+      //   //   //   last.insert(new EntryGroup(new Entry(' ', {})), this.cursorIndex);
+      //   //   //   last.groups[this.cursorIndex].cursor = true;
+      //   // }
+      // }
 
       last.cursorIndex = this.cursorIndex;
     };
 
     const updateLastHistoryOverwrite = () => {
-      let last = this.getLastHistory();
+      const last = this.getLastHistory();
       last.overwrite = overwrite;
     };
 
@@ -350,72 +354,10 @@ export default class Editor {
     updateLastHistoryCursor();
     updateLastHistoryOverwrite();
   }
-  //sets cursor true in correct location of text
+  // sets cursor true in correct location of text
 }
 
-class Entry {
-  constructor(key, options) {
-    const { styles = null } = options;
-    this.key = key;
-    this.styles = styles;
-    this.editedStyles = false;
-  }
-
-  setStyles(styles) {
-    this.styles = styles;
-  }
-  editStyle(key, val) {
-    this.styles = { ...this.styles, [key]: val };
-    this.editedStyles = true;
-  }
-}
-
-class EntryGroup {
-  constructor(Entry = null) {
-    this.cursor = false; //default false
-    this.entries = Entry ? [Entry] : [];
-  }
-
-  add(Entry) {
-    this.entries = [...this.entries, Entry];
-  }
-  getLastEntry() {
-    return this.entries.slice(-1)[0];
-  }
-}
-
-class HistoryState {
-  constructor() {
-    this.groups = [];
-    this.cursorMovement = false;
-    this.cursorIndex = null;
-    this._overwrite = null;
-  }
-
-  add(Group) {
-    this.groups = [...this.groups, Group];
-  }
-
-  insert(Group, index) {
-    // console.log("insert index", index);
-    this.groups.splice(index, 0, Group);
-  }
-  replace(Group, index) {
-    // console.log("insert index", index);
-    this.groups.splice(index, 1, Group);
-  }
-  remove(index) {
-    this.groups.splice(index, 1);
-  }
-  removeAllCursors() {
-    this.groups = this.groups.map((eg) => {
-      eg.cursor = false;
-      return eg;
-    });
-  }
-}
-
-const initHist = {
+const init_editorHist = {
   groups: [
     {
       cursor: false,

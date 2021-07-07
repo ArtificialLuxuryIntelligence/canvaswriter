@@ -2,6 +2,7 @@
 
 import { initAlphaNumStyles } from './alphaNumStyles';
 import { clamp, getRandomArbitrary, hex2rgba } from '../helpers';
+import { paperDefaults } from '../defaultPresets';
 
 export default class Paper {
   // probably shouldn't mix _ and # but the _values are exposed thru getters...
@@ -16,26 +17,23 @@ export default class Paper {
   #fontSize = 1;
 
   constructor(canvas, presets = {}) {
+    const options = Object.assign(paperDefaults, presets);
+
     this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
 
-    this._dimensions = presets?.dimensions || { w: 300, h: 400 };
-    this._lineHeight = presets?.lineHeight || 1;
-    this._letterSpacing = presets?.letterSpacing || 0.5; //[0,1]
-    this._fontRatio = presets?.fontRatio || 1;
-    this._broken = presets?.broken || 0.2;
-    this._fontColor = presets?.fontColor || '#121212';
-
-    this.randomOpacity =
-      typeof presets?.randomOpacity === 'boolean'
-        ? presets.randomOpacity
-        : true; //can't use same method as others with booleans
-    this.pageColor = presets?.pageColor || '#f5f5f5';
-    this.init();
+    this._dimensions = options.dimensions;
+    this._lineHeight = options.lineHeight;
+    this._letterSpacing = options.letterSpacing;
+    this._fontRatio = options.fontRatio;
+    this._broken = options.broken;
+    this._fontColor = options.fontColor;
+    this.randomOpacity = options.randomOpacity;
+    this.pageColor = options.pageColor;
+    this.init_paper();
   }
 
-  init() {
-    this.setDimensions(800, 400);
+  init_paper() {
     this.#ANStyles = initAlphaNumStyles({ broken: this._broken });
     this.refreshCanvas();
 
@@ -48,7 +46,7 @@ export default class Paper {
     return this._lineHeight;
   }
   get letterSpacing() {
-    return this.__letterSpacing;
+    return this._letterSpacing;
   }
   get fontRatio() {
     return this._fontRatio;
@@ -110,6 +108,7 @@ export default class Paper {
 
   // Exposed methods --------------------------------------------
 
+  //renders monospace text
   renderText(historyText, overwrite = false) {
     let { w, h } = this._dimensions;
     let width = w - this.#padding.x * 2;
@@ -122,15 +121,15 @@ export default class Paper {
     let cursorRendered = false;
 
     if (!historyText) {
-      let c1 = this.#padding.x + (0 * width) / (this.#grid.x - 1);
-      let c2 = this.#padding.y + (0 * height) / (this.#grid.y - 1);
+      let c1 = this.#padding.x + (0 * width) / this.#grid.x;
+      let c2 = this.#padding.y + (0 * height) / this.#grid.y;
       this.drawLetter('_', c1, c2);
       return;
     }
 
     if (historyText.cursorIndex === null) {
-      let c1 = this.#padding.x + (0 * width) / (this.#grid.x - 1);
-      let c2 = this.#padding.y + (0 * height) / (this.#grid.y - 1);
+      let c1 = this.#padding.x + (0 * width) / this.#grid.x;
+      let c2 = this.#padding.y + (0 * height) / this.#grid.y;
       this.drawLetter('_', c1, c2);
       cursorRendered = true;
     }
@@ -143,11 +142,11 @@ export default class Paper {
     // if layer ===currentl layer then render it..
 
     for (i = 0; i < this.#grid.y; i++) {
-      for (j = 0; j < this.#grid.x - 1; j++) {
+      for (j = 0; j < this.#grid.x; j++) {
         let group = historyText?.groups[idx];
 
-        let c1 = this.#padding.x + (j * width) / (this.#grid.x - 1);
-        let c2 = this.#padding.y + (i * height) / (this.#grid.y - 1);
+        let c1 = this.#padding.x + (j * width) / this.#grid.x;
+        let c2 = this.#padding.y + (i * height) / this.#grid.y;
 
         //debug
 
@@ -161,6 +160,7 @@ export default class Paper {
         if (entries && entries.length) {
           entries.forEach((entry) => {
             if (entry.key.length === 1) {
+              //is a single character
               this.drawLetter(
                 entry.key,
                 c1,
@@ -200,7 +200,6 @@ export default class Paper {
         if (!group && !cursorRendered) {
           this.drawLetter('_', c1, c2);
           cursorRendered = true;
-
           break;
         }
 
@@ -209,18 +208,26 @@ export default class Paper {
       let group = historyText?.groups[idx];
 
       if (!group) {
-        // this.drawLetter('_', c1, c2);
-        break;
+        //stops loop from continuing to end if no more letters
+        //bug: doesn't put cursor on next line => removed break
+        // break;
       }
     }
 
     // if (!cursorRendered) {
     //   // if()
-    //   let c1 = this.#padding.x + (j * width) / (this.#grid.x - 1);
-    //   let c2 = this.#padding.y + (i * height) / (this.#grid.y - 1);
+    //   let c1 = this.#padding.x + (j * width) / (this.#grid.x);
+    //   let c2 = this.#padding.y + (i * height) / (this.#grid.y);
     //   this.drawLetter('_', c1, c2);
     // }
   }
+
+  //TODO: renders non monospace texts
+  // requires the canvas method to calc letter widths etc
+  // can have drawletter function return the calc width of the letter?
+
+  renderNormalText(historyText, overwrite = false) {}
+
   refreshCanvas() {
     // recallibarate all variables and repaint
     // called by most setters (like a react dep array kinda thing)
@@ -232,7 +239,7 @@ export default class Paper {
     //   this.canvas.height * (this.canvas.clientWidth / this.canvas.clientHeight);
 
     this.#fontSize = (this._fontRatio * this._dimensions.w) / 20;
-    this.setPadding(this.#fontSize, this.#fontSize);
+    // this.setPadding(this.#fontSize, this.#fontSize);
 
     let clampedPaddingX = clamp(
       this.#fontSize / 2,
@@ -246,7 +253,10 @@ export default class Paper {
       x:
         (this._dimensions.w - 2 * this.#padding.x) /
         (this._letterSpacing * this.#fontSize),
-      y: this._dimensions.h / (this._lineHeight * this.#fontSize),
+      y:
+        (this._dimensions.h - 2 * this.#padding.y) /
+        (this._lineHeight * this.#fontSize),
+      // y: this._dimensions.h / this.#fontSize,
     };
 
     // this.ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.heighth);
@@ -279,7 +289,8 @@ export default class Paper {
         x: posX,
         y: posY,
         rotation: rot,
-        color = this._fontColor,
+        // color = this._fontColor,
+        color = styles.color,
         opacity = styles.opacity,
       } = letterStyles;
       let scaleX = scale;
@@ -331,7 +342,7 @@ export default class Paper {
     //update the color
     return {
       ...entry.styles,
-      color: this.fontColor,
+      // color: this.fontColor,
     };
   }
   // Debug
@@ -344,8 +355,8 @@ export default class Paper {
 
     for (let i = 0; i < this.#grid.x; i++) {
       for (let j = 0; j < this.#grid.y; j++) {
-        let c1 = this.#padding.x + (i * width) / (this.#grid.x - 1);
-        let c2 = this.#padding.y + (j * height) / (this.#grid.y - 1);
+        let c1 = this.#padding.x + (i * width) / this.#grid.x;
+        let c2 = this.#padding.y + (j * height) / this.#grid.y;
 
         if (i === 5 && j === 3) {
           this.drawLetter('l', c1, c2);
