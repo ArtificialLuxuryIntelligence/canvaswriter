@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.10.1",
     "lodash.clonedeep": "^4.5.0"
   },
   "devDependencies": {

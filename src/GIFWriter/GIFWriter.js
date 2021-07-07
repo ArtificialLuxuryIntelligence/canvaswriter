@@ -3,6 +3,7 @@ import CanvasWriter from '../CanvasWriter';
 import { getRandomInt } from '../helpers';
 import GIF from '../gif.js/gif';
 import { GIFWriterDefaults } from '../defaultPresets';
+import { transcodeBlob } from '../videoTomp4';
 
 function exportVid(blob) {
   console.log('inputblob', blob);
@@ -172,7 +173,18 @@ export default class GIFWriter extends CanvasWriter {
     // every time the recorder has new data, we will store it in our array
     rec.ondataavailable = (e) => chunks.push(e.data);
     // only when the recorder stops, we construct a complete Blob from all the chunks
-    rec.onstop = (e) => exportVid(new Blob(chunks, { type: 'video/webm' }));
+    // rec.onstop = (e) => exportVid(new Blob(chunks, { type: 'video/webm' }));
+    rec.onstop = async (e) => {
+      let webmBlob = new Blob(chunks, { type: 'video/webm' });
+      let mp4Blob = await transcodeBlob(
+        new Blob(chunks, { type: 'video/webm' })
+      );
+
+
+      // exportVid(webmBlob);
+      exportVid(mp4Blob);
+    };
+
     // rec.onstop = (e) => {
     //   exportVid(new Blob(chunks, { type: 'video/mp4; codecs="avc1.4d002a"' }));
     // };
@@ -182,6 +194,12 @@ export default class GIFWriter extends CanvasWriter {
     // };
     // rec.onstop = (e) =>
     //   exportVid(new Blob(chunks, { type: 'video/x-msvideo' }));
+
+    // rec.onstop = async (e) => {
+    //   let blob = new Blob(chunks, { type: 'video/webm' });
+    //   let mp4blob = await transcode(blob);
+    //   exportVid(mp4blob);
+    // };
 
     rec.start();
     // setTimeout(() => rec.stop(), 3000); // stop recording in 3s
