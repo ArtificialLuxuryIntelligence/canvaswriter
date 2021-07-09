@@ -1,9 +1,13 @@
 const { createFFmpeg, fetchFile } = FFmpeg;
-const ffmpeg = createFFmpeg({ log: true });
+let ffmpeg = createFFmpeg({ log: true });
 
 const transcode = async ({ target: { files } }) => {
   const { name } = files[0];
-  await ffmpeg.load();
+  if (!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+  } else {
+    console.log('already loaded');
+  }
   ffmpeg.FS('writeFile', name, await fetchFile(files[0]));
   await ffmpeg.run('-i', name, 'output.mp4');
   const data = ffmpeg.FS('readFile', 'output.mp4');
@@ -14,12 +18,28 @@ const transcode = async ({ target: { files } }) => {
 };
 
 //converts blob to mp4 encoded blob
-const transcodeBlob = async (blob) => {
+const transcodeBlob = async (blob, fps = 30) => {
   const name = 'myfile.mp4';
-  await ffmpeg.load();
+  if (!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+  } else {
+    console.log('already loaded');
+  }
   ffmpeg.FS('writeFile', name, new Uint8Array(await blob.arrayBuffer()));
-  await ffmpeg.run('-i', name, 'output.mp4');
-  const data = ffmpeg.FS('readFile', 'output.mp4');
+
+  // await ffmpeg.run('-i', name, `-filter:v`, `fps=${fps}`, 'output.mp4');
+
+  //clone last frame for 'hold' seconds
+  let hold = 0.2; //small number required so the last frame isn't missed (for some reason..)
+  await ffmpeg.run(
+    '-i',
+    name,
+    `-vf`,
+    `tpad=stop_mode=clone:stop_duration=${hold},fps=${fps}`, //clone
+    'output.mp4'
+  );
+
+  const data = await ffmpeg.FS('readFile', 'output.mp4');
   return new Blob([data.buffer], { type: 'video/mp4' });
 };
 

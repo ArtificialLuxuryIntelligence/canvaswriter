@@ -34,12 +34,15 @@
           <label> Page colour <input id="page-color" type="color"> </label>
           <label>
             Page width
-            <input id="pageWidth" type="range" min="100" max="1200" step="1" oninput="widthAmount.value=pageWidth.value+'px'">
+            <!-- step needs to be 2 for ffmpeg to process file correctly -->
+            <input id="pageWidth" type="range" min="200" max="1200" step="2" oninput="widthAmount.value=pageWidth.value+'px'">
             <output id="widthAmount" name="widthAmount" for="pageWidth">100px</output>
           </label>
           <label>
             Page height
-            <input id="pageHeight" type="range" min="360" max="1200" step="1" oninput="heightAmount.value=pageHeight.value+'px'">
+            <!-- step needs to be 2 for ffmpeg to process file correctly -->
+
+            <input id="pageHeight" type="range" min="100" max="1200" step="2" oninput="heightAmount.value=pageHeight.value+'px'">
             <output id="heightAmount" name="heightAmount" for="pageWidth">100px</output>
           </label>
         </div>
@@ -91,7 +94,7 @@
           </label>
           <label>
             R
-            <input id="letter-r" data-key="rotation" type="range" min="-180" max="180" step="0.1">
+            <input id="letter-r" data-key="rotation" type="range" min="-180" max="180" step="1">
           </label>
           <label>
             Scale

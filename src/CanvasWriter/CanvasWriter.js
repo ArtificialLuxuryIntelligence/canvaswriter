@@ -44,7 +44,7 @@ export default class CanvasWriter {
       t_undo,
       t_redo,
       t_reset,
-      t_key,
+      t_key = document,
     } = DOMControls; //etc etc/
 
     const letterControls = {
@@ -109,8 +109,19 @@ export default class CanvasWriter {
       } = textControls;
 
       const handleKeyDown = (e) => {
+        // console.log(e);
+
+        if (document.activeElement.tagName == 'INPUT') {
+          // e.preventDefault();
+          console.log(document.activeElement.tagName);
+          return;
+        } else {
+          e.preventDefault();
+        }
+        // if (e.key === ' ') {
+        //cancel default action (scrolls down page) [if t_key is set to document which is the default (as it needs keydown event if not using tabindex-1 hack)]
+        // }
         this.cancelAnimation && this.cancelAnimation(); //this is from GIFWriter class...
-        e.preventDefault();
         this.editor.handleKeyInput(e.key);
         // this.paper.refreshCanvas();
         this.updateLetterControls(letterControls);
@@ -161,7 +172,7 @@ export default class CanvasWriter {
 
       const handleTextColorInput = (e) => {
         this.paper.fontColor = e.target.value;
-        console.log(e.target.value);
+        // console.log(e.target.value);
         this.renderLastText();
       };
       const handlePageColorInput = (e) => {
@@ -202,6 +213,7 @@ export default class CanvasWriter {
       t_redo?.addEventListener('click', handleRedoButton);
       t_reset?.addEventListener('click', handleResetButton);
       t_key?.addEventListener('keydown', handleKeyDown);
+      // canvas?.addEventListener('keydown', handleKeyDown);
     };
 
     // Synchronise the values of sliders/checkboxes to the state

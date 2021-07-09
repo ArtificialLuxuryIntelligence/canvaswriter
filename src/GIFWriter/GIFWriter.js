@@ -38,7 +38,7 @@ export default class GIFWriter extends CanvasWriter {
 
     //options
     this.historyAnimation = options.historyAnimation;
-    this.animationSpeed = options.animationSpeed;
+    this.animationSpeed = options.animationSpeed; //interval between frames in s
     this.init_gifwriter();
   }
 
@@ -82,8 +82,10 @@ export default class GIFWriter extends CanvasWriter {
           type();
         }, interval);
       } else {
-        clearTimeout(this.timer);
-        onAnimationEnd && onAnimationEnd();
+        this.timer = setTimeout(() => {
+          onAnimationEnd && onAnimationEnd();
+          clearTimeout(this.timer);
+        }, 500); //timeout here otherwise last frame isn't captured 
       }
     };
     type();
@@ -166,20 +168,25 @@ export default class GIFWriter extends CanvasWriter {
   };
 
   recordVideo(animationFunction) {
-    const chunks = []; // here we will store our recorded media chunks (Blobs)
+    let chunks = []; // here we will store our recorded media chunks (Blobs)
     const stream = this.DOMControls.canvas.captureStream(); // grab our canvas MediaStream
     const rec = new MediaRecorder(stream); // init the recorder
+    let lastChunk;
     // every time the recorder has new data, we will store it in our array
-    rec.ondataavailable = (e) => chunks.push(e.data);
+    rec.ondataavailable = (e) => {
+      chunks.push(e.data);
+      lastChunk = e.data;
+    };
     // only when the recorder stops, we construct a complete Blob from all the chunks
     // rec.onstop = (e) => exportVid(new Blob(chunks, { type: 'video/webm' }));
     rec.onstop = async (e) => {
       let webmBlob = new Blob(chunks, { type: 'video/webm' });
-      let mp4Blob = await transcodeBlob(
-        new Blob(chunks, { type: 'video/webm' })
-      );
+      console.log('webmblob', webmBlob);
+      let fps = parseInt(1 / ((this.animationSpeed * 2) / 3)); // calc min req fps to cover the interval range here [3/2 accounts for variance in animation fn]
 
-      // exportVid(webmBlob);
+      let mp4Blob = await transcodeBlob(webmBlob, fps);
+
+      exportVid(webmBlob);
       exportVid(mp4Blob);
     };
 
@@ -203,10 +210,8 @@ export default class GIFWriter extends CanvasWriter {
     // setTimeout(() => rec.stop(), 3000); // stop recording in 3s
 
     function onAnimationEnd() {
-      setTimeout(() => {
-        // stop the last frame from being missed..
-        rec.stop();
-      }, 200);
+      // stop the last frame from being missed..
+      rec.stop();
     }
 
     animationFunction(onAnimationEnd);
@@ -299,11 +304,11 @@ export default class GIFWriter extends CanvasWriter {
       const handleStartIndexRange = (e) => {
         this.startIndex = Number(e.target.value);
 
-        console.log(this.historyAnimation);
+        // console.log(this.historyAnimation);
         if (this.historyAnimation) {
           a_start_idx.max = String(this.editor.history.length - 1);
         } else {
-          console.log('max', this.editor.getLastHistory().groups.length - 1);
+          // console.log('max', this.editor.getLastHistory().groups.length - 1);
           a_start_idx.max = String(
             this.editor.getLastHistory().groups.length - 1
           );
