@@ -220,6 +220,7 @@ export default class CanvasWriter {
       //Paper options
       p_width && (p_width.value = this.paper.dimensions.w);
       p_height && (p_height.value = this.paper.dimensions.h);
+
       t_line_height && (t_line_height.value = this.paper.lineHeight);
       t_letter_spacing && (t_letter_spacing.value = this.paper.letterSpacing);
       t_font_scale && (t_font_scale.value = this.paper.fontRatio);
@@ -230,6 +231,15 @@ export default class CanvasWriter {
 
       t_rand_opacity && (t_rand_opacity.checked = this.paper.randomOpacity);
       p_color && (p_color.value = this.paper.pageColor);
+
+      // --- output UI
+      p_width &&
+        (p_width.nextElementSibling.value = this.paper.dimensions.w + 'px');
+      p_height &&
+        (p_height.nextElementSibling.value = this.paper.dimensions.h + 'px');
+
+      // p_height && (p_height.value = this.paper.dimensions.h);
+      // --
 
       //Editor options
       t_overwrite && (t_overwrite.checked = this.editor.overwrite);

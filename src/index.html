@@ -32,13 +32,13 @@
               id="zoom"
               type="range"
               min="10"
-              max="150"
+              max="200"
               value="100"
               step="1"
               oninput="zoomAmount.value=zoom.value+'%'"
             />
+            <output id="zoomAmount" name="zoomAmount" for="zoom">100%</output>
           </label>
-          <output id="zoomAmount" name="zoomAmount" for="zoom">100%</output>
         </div>
       </div>
 
@@ -48,17 +48,31 @@
           <label> Page colour <input id="page-color" type="color" /> </label>
           <label>
             Page width
-            <input id="page-width" type="range" min="100" max="1800" step="1" />
+            <input
+              id="pageWidth"
+              type="range"
+              min="100"
+              max="1200"
+              step="1"
+              oninput="widthAmount.value=pageWidth.value+'px'"
+            />
+            <output id="widthAmount" name="widthAmount" for="pageWidth"
+              >100px</output
+            >
           </label>
           <label>
             Page height
             <input
-              id="page-height"
+              id="pageHeight"
               type="range"
               min="360"
               max="1200"
               step="1"
+              oninput="heightAmount.value=pageHeight.value+'px'"
             />
+            <output id="heightAmount" name="heightAmount" for="pageWidth"
+              >100px</output
+            >
           </label>
         </div>
         <div class="global-text-controls">

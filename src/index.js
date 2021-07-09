@@ -31,8 +31,8 @@ const DOMElements = {
 
   // page controls
   p_color: document.getElementById('page-color'),
-  p_width: document.getElementById('page-width'),
-  p_height: document.getElementById('page-height'),
+  p_width: document.getElementById('pageWidth'),
+  p_height: document.getElementById('pageHeight'),
 
   // animation controls
   a_start: document.getElementById('animation-start'),
@@ -48,7 +48,7 @@ const DOMElements = {
 
 function addZoomHandler() {
   const zoomRange = document.getElementById('zoom');
-  const p_width = document.getElementById('page-width');
+  const p_width = document.getElementById('pageWidth');
   const canvas = document.getElementById('paper');
 
   const updateZoom = (canvasWidth, zoomValue) => {
