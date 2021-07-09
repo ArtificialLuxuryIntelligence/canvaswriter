@@ -99,16 +99,128 @@ export default class Paper {
     this.#padding = { x, y };
   }
 
-  // set dimensions(val) {
-  //   this._dimensions = val;
-  //   this.refreshCanvas();
-  // }
-
   // ---End exposed variables
 
   // Exposed methods --------------------------------------------
 
   //renders monospace text
+  // renderText(historyText, overwrite = false) {
+  //   let { w, h } = this._dimensions;
+  //   let width = w - this.#padding.x * 2;
+  //   let height = h - this.#padding.y * 2;
+  //   // let lw = width / this.#grid.x;
+  //   let lw = this.#fontSize;
+
+  //   let idx = 0;
+  //   let cursorNext = false;
+  //   let cursorRendered = false;
+
+  //   if (!historyText) {
+  //     let c1 = this.#padding.x + (0 * width) / this.#grid.x;
+  //     let c2 = this.#padding.y + (0 * height) / this.#grid.y;
+  //     this.drawLetter('_', c1, c2);
+  //     return;
+  //   }
+
+  //   if (historyText.cursorIndex === null) {
+  //     let c1 = this.#padding.x + (0 * width) / this.#grid.x;
+  //     let c2 = this.#padding.y + (0 * height) / this.#grid.y;
+  //     this.drawLetter('_', c1, c2);
+  //     cursorRendered = true;
+  //   }
+
+  //   let i, j;
+
+  //   //TODO add layers?
+  //   // do the below loop once for every layer -starting from bottom?
+  //   // add layer:1 to styles
+  //   // if layer ===currentl layer then render it..
+
+  //   for (i = 0; i < this.#grid.y; i++) {
+  //     for (j = 0; j < this.#grid.x; j++) {
+  //       let group = historyText?.groups[idx];
+
+  //       let c1 = this.#padding.x + (j * width) / this.#grid.x;
+  //       let c2 = this.#padding.y + (i * height) / this.#grid.y;
+
+  //       //debug
+
+  //       // this.ctx.beginPath();
+  //       // this.ctx.arc(c1, c2, 20 / 2, 0, 2 * Math.PI);
+  //       // this.ctx.stroke();
+
+  //       //
+
+  //       let entries = group?.entries;
+  //       if (entries && entries.length) {
+  //         entries.forEach((entry) => {
+  //           if (entry.key.length === 1) {
+  //             //is a single character
+  //             this.drawLetter(
+  //               entry.key,
+  //               c1,
+  //               c2,
+  //               entry.styles,
+  //               entry.editedStyles
+  //             );
+  //           } else if (entry.key === 'Enter') {
+  //             i++;
+  //             j = -1;
+  //           }
+  //         });
+
+  //         if (cursorNext) {
+  //           this.drawLetter('_', c1, c2);
+  //           cursorRendered = true;
+  //           cursorNext = false;
+  //         }
+
+  //         //TODO - dont' use group.cursor, use historyText.cursorIndex (then remove group.cursor everywhere..)
+
+  //         // if (historyText.cursorIndex === idx) {
+  //         //   this.drawLetter('_', c1, c2);
+  //         //   cursorRendered = true;
+  //         // }
+  //         if (historyText.cursorIndex === idx) {
+  //           if (overwrite) {
+  //             this.drawLetter('_', c1, c2);
+  //             cursorRendered = true;
+  //           } else {
+  //             //non-overwrite: render cursor at next positiondd
+  //             cursorNext = true;
+  //           }
+  //         }
+  //       }
+
+  //       if (!group && !cursorRendered) {
+  //         this.drawLetter('_', c1, c2);
+  //         cursorRendered = true;
+  //         break;
+  //       }
+
+  //       idx++;
+  //     }
+  //     let group = historyText?.groups[idx];
+
+  //     if (!group) {
+  //       //stops loop from continuing to end if no more letters
+  //       //bug: doesn't put cursor on next line => removed break
+  //       // break;
+  //     }
+  //   }
+
+  //   // if (!cursorRendered) {
+  //   //   // if()
+  //   //   let c1 = this.#padding.x + (j * width) / (this.#grid.x);
+  //   //   let c2 = this.#padding.y + (i * height) / (this.#grid.y);
+  //   //   this.drawLetter('_', c1, c2);
+  //   // }
+  // }
+
+  //TODO: renders non monospace texts
+  // requires the canvas method to calc letter widths etc
+  // can have drawletter function return the calc width of the letter?
+
   renderText(historyText, overwrite = false) {
     let { w, h } = this._dimensions;
     let width = w - this.#padding.x * 2;
@@ -120,10 +232,13 @@ export default class Paper {
     let cursorNext = false;
     let cursorRendered = false;
 
+    let addedWidth = 0;
+
     if (!historyText) {
       let c1 = this.#padding.x + (0 * width) / this.#grid.x;
       let c2 = this.#padding.y + (0 * height) / this.#grid.y;
       this.drawLetter('_', c1, c2);
+      console.log('no text');
       return;
     }
 
@@ -132,68 +247,101 @@ export default class Paper {
       let c2 = this.#padding.y + (0 * height) / this.#grid.y;
       this.drawLetter('_', c1, c2);
       cursorRendered = true;
+      // return;
     }
 
     let i, j;
 
-    //TODO add layers?
-    // do the below loop once for every layer -starting from bottom?
-    // add layer:1 to styles
-    // if layer ===currentl layer then render it..
-
     for (i = 0; i < this.#grid.y; i++) {
-      for (j = 0; j < this.#grid.x; j++) {
+      let group = historyText?.groups[idx];
+      if (!group && !cursorRendered) {
+        let c1 = this.#padding.x + (0 * width) / this.#grid.x;
+        let c2 = this.#padding.y + (i * height) / this.#grid.y;
+        this.drawLetter('_', c1, c2);
+
+        return;
+      }
+      // if (i >= 1) {
+      //   //skip first loop to allow for above cursors
+      let addedWidth = 0;
+      // }
+      // while (addedWidth < 100) {
+      while (addedWidth < width) {
+        if (idx > historyText.groups.length) {
+          break;
+        }
         let group = historyText?.groups[idx];
 
-        let c1 = this.#padding.x + (j * width) / this.#grid.x;
+        // console.log('Loop', idx, addedWidth, group);
+
+        let c1 = this.#padding.x + addedWidth;
         let c2 = this.#padding.y + (i * height) / this.#grid.y;
 
         //debug
 
         // this.ctx.beginPath();
         // this.ctx.arc(c1, c2, 20 / 2, 0, 2 * Math.PI);
-        // this.ctx.stroke();
+        // this.ctx.fillStyle = 'tomato';
+        // this.ctx.fill();
 
         //
 
         let entries = group?.entries;
         if (entries && entries.length) {
           entries.forEach((entry) => {
+            let groupAddedWidth = 0;
             if (entry.key.length === 1) {
               //is a single character
-              this.drawLetter(
+              let l = this.drawLetter(
                 entry.key,
                 c1,
                 c2,
                 entry.styles,
                 entry.editedStyles
               );
+              if (l.width > groupAddedWidth) {
+                // console.log('lw', l.width);
+                groupAddedWidth = l.width;
+              }
             } else if (entry.key === 'Enter') {
               i++;
-              j = -1;
+              // j = -1;
+              addedWidth = 0;
+              // break;
             }
+            addedWidth += groupAddedWidth * this.letterSpacing;
           });
 
           if (cursorNext) {
-            this.drawLetter('_', c1, c2);
+            let l = this.drawLetter('_', c1, c2);
+            // addedWidth += l.width;
             cursorRendered = true;
             cursorNext = false;
           }
 
-          //TODO - dont' use group.cursor, use historyText.cursorIndex (then remove group.cursor everywhere..)
-
-          // if (historyText.cursorIndex === idx) {
-          //   this.drawLetter('_', c1, c2);
-          //   cursorRendered = true;
-          // }
           if (historyText.cursorIndex === idx) {
             if (overwrite) {
-              this.drawLetter('_', c1, c2);
+              let l = this.drawLetter('_', c1, c2);
+              // addedWidth += l.width;
               cursorRendered = true;
             } else {
               //non-overwrite: render cursor at next positiondd
               cursorNext = true;
             }
+          }
+
+          if (!group && !cursorRendered) {
+            let l = this.drawLetter('_', c1, c2);
+            addedWidth += l.width * this.letterSpacing;
+            cursorRendered = true;
+            console.log('breaking');
+
+            // break;
+          }
+          if (!group) {
+            idx++;
+
+            // break;
           }
         }
 
@@ -204,29 +352,11 @@ export default class Paper {
         }
 
         idx++;
-      }
-      let group = historyText?.groups[idx];
-
-      if (!group) {
-        //stops loop from continuing to end if no more letters
-        //bug: doesn't put cursor on next line => removed break
+        // console.log('end');
         // break;
       }
     }
-
-    // if (!cursorRendered) {
-    //   // if()
-    //   let c1 = this.#padding.x + (j * width) / (this.#grid.x);
-    //   let c2 = this.#padding.y + (i * height) / (this.#grid.y);
-    //   this.drawLetter('_', c1, c2);
-    // }
   }
-
-  //TODO: renders non monospace texts
-  // requires the canvas method to calc letter widths etc
-  // can have drawletter function return the calc width of the letter?
-
-  renderNormalText(historyText, overwrite = false) {}
 
   refreshCanvas() {
     // recallibarate all variables and repaint
@@ -267,10 +397,13 @@ export default class Paper {
   // ---End exposed methods --------------------------------------------
 
   drawLetter(letter, x, y, styles, editedStyles) {
-    this.ctx.textAlign = 'center';
+    // this.ctx.textAlign = 'center'; //NOTE only for MONO
+
     this.ctx.textBaseline = 'middle';
     // this.ctx.font = `${this.#fontSize}px JetBrains Mono`;
-    this.ctx.font = `${this.#fontSize}px Roboto Mono`;
+    // this.ctx.font = `${this.#fontSize}px Roboto Mono`;
+    this.ctx.font = `${this.#fontSize}px Ariel`; //non mono test font
+
     this.ctx.fillStyle = this._fontColor;
     let letterStyles;
 
@@ -317,8 +450,10 @@ export default class Paper {
       //undo transforms
       this.ctx.rotate((-rot * Math.PI) / 180);
       this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
+      return this.ctx.measureText(letter);
     } else {
       this.ctx.fillText(letter, x, y);
+      return this.ctx.measureText(letter);
     }
 
     //restore (ctx.restore /save is more CPU intensive apparently)
@@ -358,12 +493,12 @@ export default class Paper {
         let c1 = this.#padding.x + (i * width) / this.#grid.x;
         let c2 = this.#padding.y + (j * height) / this.#grid.y;
 
-        if (i === 5 && j === 3) {
-          this.drawLetter('l', c1, c2);
-        }
-        if (i === 6 && j === 3) {
-          this.drawLetter('y', c1, c2);
-        }
+        // if (i === 5 && j === 3) {
+        //   this.drawLetter('l', c1, c2);
+        // }
+        // if (i === 6 && j === 3) {
+        //   this.drawLetter('y', c1, c2);
+        // }
         this.ctx.beginPath();
         this.ctx.arc(c1, c2, lw / 2, 0, 2 * Math.PI);
         this.ctx.stroke();

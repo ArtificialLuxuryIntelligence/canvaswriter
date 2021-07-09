@@ -1,7 +1,7 @@
 const paperDefaults = {
   dimensions: { w: 480, h: 360 },
   lineHeight: 1.1, //not 0
-  letterSpacing: 0.6,
+  letterSpacing: 1,
   fontRatio: 2, //not 0
   broken: 0.1,
   fontColor: '#121212',
