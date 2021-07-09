@@ -46,6 +46,30 @@ const DOMElements = {
   s_image: document.getElementById('save-image'),
 };
 
+function addZoomHandler() {
+  const zoomRange = document.getElementById('zoom');
+  const p_width = document.getElementById('page-width');
+  const canvas = document.getElementById('paper');
+
+  const updateZoom = (canvasWidth, zoomValue) => {
+    canvas.style.width = `${(canvasWidth * zoomValue) / 100}px`;
+  };
+
+  const handleZoomRange = (e) => {
+    updateZoom(p_width.value, e.target.value);
+    // canvas.style.width = `${(canvas.width * e.target.value) / 100}px`;
+  };
+
+  const handlePageWidthRange = (e) => {
+    updateZoom(e.target.value, zoomRange.value);
+
+    // canvas.style.width = `${(canvas.width * e.target.value) / 100}px`;
+  };
+
+  zoomRange.addEventListener('input', handleZoomRange);
+  p_width.addEventListener('input', handlePageWidthRange);
+}
+
 function main() {
   const presets = {
     //cf. defaults
@@ -53,14 +77,14 @@ function main() {
     // overwrite: false,
     // lineHeight: 0.1,
   };
-  // let canvasWriter = new CanvasWriter({ elements: DOMElements, settings: {} });
   const Gwriter = new GIFWriter({
     elements: DOMElements,
     presets,
     settings: {},
   });
+  addZoomHandler();
+
   console.log(Gwriter);
-  // console.log(canvasWriter);
 }
 
 main();

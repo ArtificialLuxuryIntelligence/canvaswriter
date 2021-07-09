@@ -16,12 +16,25 @@
   </head>
   <body>
     <div id="app">
-      <div class="controls">
+      <!-- HTML elements for UI controls -->
+
+      <div class="controls ui-controls">
+        <div class="">
+          <label>
+            zoom
+            <input id="zoom" type="range" min="10" max="150" value="100" step="1" oninput="zoomAmount.value=zoom.value+'%'">
+          </label>
+          <output id="zoomAmount" name="zoomAmount" for="zoom">100%</output>
+        </div>
+      </div>
+
+      <!-- HTML elements for GIFWriter controls -->
+      <div class="controls gifwriter-controls">
         <div class="page-controls">
           <label> Page colour <input id="page-color" type="color"> </label>
           <label>
             Page width
-            <input id="page-width" type="range" min="200" max="1200" step="1">
+            <input id="page-width" type="range" min="100" max="1800" step="1">
           </label>
           <label>
             Page height

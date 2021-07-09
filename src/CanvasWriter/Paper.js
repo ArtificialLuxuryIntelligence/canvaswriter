@@ -150,9 +150,9 @@ export default class Paper {
 
         //debug
 
-        // this.ctx.beginPath();
-        // this.ctx.arc(c1, c2, 20 / 2, 0, 2 * Math.PI);
-        // this.ctx.stroke();
+        this.ctx.beginPath();
+        this.ctx.arc(c1, c2, 20 / 2, 0, 2 * Math.PI);
+        this.ctx.stroke();
 
         //
 

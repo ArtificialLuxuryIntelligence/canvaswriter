@@ -33,6 +33,14 @@ export default class Editor {
     if (val === true && this.cursorIndex === null) {
       this.cursorIndex = 0;
     }
+
+    if (val === true) {
+      // this.cursorIndex = this.prevCursorIndex();
+      // this.decrCursor();
+    } else {
+      // this.cursorIndex = this.nextCursorIndex();
+      // this.incrCursor();
+    }
   }
 
   // Exposed methods --------------------------------------------
@@ -113,6 +121,8 @@ export default class Editor {
 
   // Internals --------------------------------------------
   // Handle cursor movement
+
+  // todo REPLACE the innards of these fn with the below dfns and check
   incrCursor() {
     const last = this.getLastHistory().groups;
     if (this.cursorIndex === null) {
@@ -163,7 +173,21 @@ export default class Editor {
     if (!this._overwrite) {
       if (this.cursorIndex < last.length) {
         return this.cursorIndex + 1;
+      } else {
+        // ?
+        return this.cursorIndex;
       }
+    }
+  }
+  prevCursorIndex() {
+    if (this.cursorIndex === 0) {
+      if (this._overwrite) {
+        return 0;
+      } else {
+        return null;
+      }
+    } else if (this.cursorIndex > 0) {
+      return this.cursorIndex - 1;
     }
   }
 
@@ -225,15 +249,13 @@ export default class Editor {
 
     // Add to history
     if (!this.getCurrentEntry()) {
-      // console.log('is empy');
       // is empty
+      // console.log('is empty');
       entryGroup = new EntryGroup(entry);
-      // console.log('nnn', this.nextCursorIndex());
       text.insert(entryGroup, this.nextCursorIndex());
       this.addToHistory(text);
     } else if (this._overwrite) {
       const n = this.nextCursorIndex();
-      // console.log('nextov', n);
       // Add entry to group at current index
       entryGroup = text.groups[this.cursorIndex];
       if (entryGroup) {
