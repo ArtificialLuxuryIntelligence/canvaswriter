@@ -107,7 +107,6 @@ export default class GIFWriter extends CanvasWriter {
         return [false];
       }
       const newText = cloneDeep(text);
-
       newText.cursorIndex = groupIndex; //this and setting overwrite below keeps the cursor in nice position
 
       let nextGroupIndex = groupIndex;
@@ -179,7 +178,6 @@ export default class GIFWriter extends CanvasWriter {
       let mp4Blob = await transcodeBlob(
         new Blob(chunks, { type: 'video/webm' })
       );
-
 
       // exportVid(webmBlob);
       exportVid(mp4Blob);
@@ -279,6 +277,7 @@ export default class GIFWriter extends CanvasWriter {
       s_record,
       s_image,
       s_gif,
+      t_reset,
     } = DOMControls; // etc etc/
 
     const addControlListeners = () => {
@@ -331,6 +330,13 @@ export default class GIFWriter extends CanvasWriter {
         this.saveImage();
       };
 
+      //additional listeners [element already has one attached]
+      const handleResetButton = () => {
+        this.startIndex = 0;
+        this.syncDOM(this.DOMControls);
+        this.renderLastText();
+      };
+
       // animation
       a_start?.addEventListener('click', handleStartAnimation);
 
@@ -343,6 +349,9 @@ export default class GIFWriter extends CanvasWriter {
       s_record?.addEventListener('click', handleStartRecordVideo);
       s_image?.addEventListener('click', handleSaveImage);
       s_gif?.addEventListener('click', handleStartRecordGif);
+
+      // additional
+      t_reset?.addEventListener('click', handleResetButton);
     };
 
     addControlListeners();

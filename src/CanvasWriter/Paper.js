@@ -242,8 +242,8 @@ export default class Paper {
     // this.setPadding(this.#fontSize, this.#fontSize);
 
     let clampedPaddingX = clamp(
-      this.#fontSize / 2,
-      this._dimensions.w / 14,
+      this.#fontSize / 3,
+      this._dimensions.w / 12,
       this._dimensions.w / 10
     );
 
