@@ -26,6 +26,7 @@ export default class Paper {
     this._lineHeight = options.lineHeight;
     this._letterSpacing = options.letterSpacing;
     this._fontRatio = options.fontRatio;
+    this._font = options.font;
     this._broken = options.broken;
     this._fontColor = options.fontColor;
     this.randomOpacity = options.randomOpacity;
@@ -50,6 +51,10 @@ export default class Paper {
   }
   get fontRatio() {
     return this._fontRatio;
+  }
+
+  get font() {
+    return this._font;
   }
   get broken() {
     return this._broken;
@@ -77,6 +82,11 @@ export default class Paper {
   set fontRatio(val) {
     this._fontRatio = val;
     this.refreshCanvas();
+  }
+
+  set font(val) {
+    this._font = val;
+    this.refreshCanvas;
   }
   set broken(val) {
     this._broken = val;
@@ -396,8 +406,8 @@ export default class Paper {
     // this.ctx.textAlign = 'center'; //NOTE only for MONO [not even needed there becaus letters already centred]
 
     this.ctx.textBaseline = 'middle';
-    // this.ctx.font = `${this.#fontSize}px JetBrains Mono`;
-    this.ctx.font = `${this.#fontSize}px Roboto Mono`;
+    this.ctx.font = `${this.#fontSize}px ${this._font}`;
+
     // this.ctx.font = `${this.#fontSize}px Ariel`; //non mono test font
 
     this.ctx.fillStyle = this._fontColor;

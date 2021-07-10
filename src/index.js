@@ -16,6 +16,7 @@ const DOMElements = {
 
   // text controls
   t_color: document.getElementById('text-color'),
+  t_font: document.getElementById('font'),
   t_line_height: document.getElementById('line-height'),
   t_letter_spacing: document.getElementById('letter-spacing'),
   t_font_scale: document.getElementById('font-scale'),
@@ -73,14 +74,23 @@ function addZoomHandler() {
 function main() {
   const presets = {
     //cf. defaults
-    // randomOpacity: true,
-    // overwrite: false,
-    // lineHeight: 0.1,
+    randomOpacity: false,
+    overwrite: false,
+    lineHeight: 0.9,
+    letterSpacing: 0.8,
+  };
+  const options = {
+    // fonts: [
+    //   {
+    //     name: 'Roboto Mono',
+    //     url: 'https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap',
+    //   },
+    // ],
   };
   const Gwriter = new GIFWriter({
     elements: DOMElements,
     presets,
-    settings: {},
+    options,
   });
   addZoomHandler();
 

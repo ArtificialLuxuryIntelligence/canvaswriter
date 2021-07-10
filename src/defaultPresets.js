@@ -3,6 +3,7 @@ const paperDefaults = {
   lineHeight: 1.1, //not 0
   letterSpacing: 1,
   fontRatio: 2, //not 0
+  font: 'Roboto Mono',
   broken: 0.1,
   fontColor: '#121212',
   pageColor: '#f5f5f5',

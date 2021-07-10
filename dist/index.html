@@ -7,8 +7,14 @@
     <title>canvas writer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <!-- <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    /> -->
     <!-- ffmpeg -->
     <link rel="stylesheet" href="/index.d32fba36.css"><script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
 
@@ -62,9 +68,13 @@
             <input id="letter-spacing" type="range" min="0.4" max="2" step="0.01">
           </label>
           <label>
-            Font scale
+            Font size
             <input id="font-scale" type="range" min="0.5" max="4" step="0.01" value="1">
           </label>
+          <label>
+            Font
+            <select id="font"></select></label>
+
           <label>
             Wonkiness
             <input id="broken" type="range" min="0" max="1" step="0.05">
@@ -72,7 +82,6 @@
         </div>
         <div class="text-controls">
           <label> Text colour <input id="text-color" type="color"> </label>
-          <label> Text font [to do] - per letter!? </label>
 
           <label for="random-opacity">
             Toggle random opacity
@@ -122,7 +131,7 @@
             Slower
           </label>
           <label>
-            Start index
+            Animation start
             <input id="animation-start-index" type="range" min="0" max="100" step="1">
           </label>
         </div>

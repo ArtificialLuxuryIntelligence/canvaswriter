@@ -28,17 +28,17 @@ function exportPic(canvas) {
 
 // Extends CanvasWriter functionality
 export default class GIFWriter extends CanvasWriter {
-  constructor({ elements, presets, settings }) {
-    const options = Object.assign(GIFWriterDefaults, presets);
+  constructor({ elements, presets, options }) {
+    const GWpresets = Object.assign(GIFWriterDefaults, presets);
 
-    super({ elements, presets, settings });
+    super({ elements, presets, options });
     this.timer = null;
     this.startIndex = 0;
     this.maxStartIndex = null;
 
-    //options
-    this.historyAnimation = options.historyAnimation;
-    this.animationSpeed = options.animationSpeed; //interval between frames in s
+    //presets
+    this.historyAnimation = GWpresets.historyAnimation;
+    this.animationSpeed = GWpresets.animationSpeed; //interval between frames in s
     this.init_gifwriter();
   }
 
@@ -85,7 +85,7 @@ export default class GIFWriter extends CanvasWriter {
         this.timer = setTimeout(() => {
           onAnimationEnd && onAnimationEnd();
           clearTimeout(this.timer);
-        }, 500); //timeout here otherwise last frame isn't captured 
+        }, 500); //timeout here otherwise last frame isn't captured
       }
     };
     type();

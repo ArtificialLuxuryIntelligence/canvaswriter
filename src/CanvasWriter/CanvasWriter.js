@@ -1,17 +1,19 @@
+import defaultOptions from '../defaultOptions';
 import Editor from './Editor/Editor';
 import Paper from './Paper';
 
 // Combine Paper and Editor and add controls
 export default class CanvasWriter {
-  constructor({ elements, settings, presets }) {
-    const { canvas, canvas2 = null } = elements;
-
+  constructor({ elements, options, presets }) {
+    const { canvas } = elements;
+    const CWoptions = Object.assign(defaultOptions, options);
     this.paper = new Paper(canvas, presets);
     this.editor = new Editor(presets);
 
     this.DOMControls = elements;
-    this.settings = settings;
-    // settings not used but leave for now (could be used to autocreate the DOMElements? in a given container?)
+    this.options = CWoptions;
+    this.loadedFonts = [];
+    // options not used but leave for now (could be used to autocreate the DOMElements? in a given container?)
     // this would then require all ranges to have min/max [although range:{min:1,max:5,default:4}] might be better
     this.init();
   }
@@ -19,6 +21,10 @@ export default class CanvasWriter {
   init() {
     this.editor.connect(this.paper);
     this.addEventListeners(this.DOMControls);
+    this.syncDOM(this.DOMControls);
+    this.buildDOM(this.DOMControls);
+    let font = this.options.fonts[0];
+    this.loadFont(font.name, font.url);
   }
 
   addEventListeners(DOMControls) {
@@ -32,6 +38,7 @@ export default class CanvasWriter {
       l_color,
       l_opacity,
       t_color,
+      t_font,
       p_color,
       p_width,
       p_height,
@@ -57,6 +64,7 @@ export default class CanvasWriter {
     };
     const textControls = {
       t_color,
+      t_font,
       p_color,
       p_width,
       p_height,
@@ -110,7 +118,14 @@ export default class CanvasWriter {
 
       const handleKeyDown = (e) => {
         let key = e.key;
-        if (e.key === 'Control') {
+        //ignore unhandled keys
+        if (
+          key.length !== 1 &&
+          key !== 'Enter' &&
+          key !== 'ArrowLeft' &&
+          key !== 'ArrowRight' &&
+          key !== 'Backspace'
+        ) {
           return;
         }
         // adjust input rangesliders with arrows else type
@@ -181,6 +196,19 @@ export default class CanvasWriter {
         // console.log(e.target.value);
         this.renderLastText();
       };
+
+      const handleFontInput = (e) => {
+        let sel = e.target;
+        const val = sel.value;
+        let text = sel.options[sel.selectedIndex].text;
+        this.loadFont(text, val);
+        this.paper.font = text;
+        this.renderLastText();
+        setTimeout(() => {
+          this.renderLastText(); //also give font time to load
+        }, 1000);
+      };
+
       const handlePageColorInput = (e) => {
         this.paper.pageColor = e.target.value;
         this.renderLastText();
@@ -209,6 +237,8 @@ export default class CanvasWriter {
       p_width?.addEventListener('input', handlePageWidthRange);
       p_height?.addEventListener('input', handlePageHeightRange);
       t_color?.addEventListener('input', handleTextColorInput);
+      t_font?.addEventListener('input', handleFontInput);
+
       t_line_height?.addEventListener('input', handleLineHeightRange);
       t_letter_spacing?.addEventListener('input', handleLetterSpacingRange);
       t_font_scale?.addEventListener('input', handleFontScaleRange);
@@ -223,51 +253,70 @@ export default class CanvasWriter {
       // canvas?.addEventListener('keydown', handleKeyDown);
     };
 
-    // Synchronise the values of sliders/checkboxes to the state
-    // Should cover all defaultPresets that have corresponding DOM inputs (for paper and editor)
-    const syncDOM = (DOMControls) => {
-      const {
-        t_color,
-        p_color,
-        p_width,
-        p_height,
-        t_line_height,
-        t_letter_spacing,
-        t_font_scale,
-        t_broken,
-      } = DOMControls;
-      //Paper options
-      p_width && (p_width.value = this.paper.dimensions.w);
-      p_height && (p_height.value = this.paper.dimensions.h);
-
-      t_line_height && (t_line_height.value = this.paper.lineHeight);
-      t_letter_spacing && (t_letter_spacing.value = this.paper.letterSpacing);
-      t_font_scale && (t_font_scale.value = this.paper.fontRatio);
-      t_broken && (t_broken.value = this.paper.broken);
-
-      t_color && (t_color.value = this.paper.fontColor);
-      l_color && (l_color.value = this.paper.fontColor);
-
-      t_rand_opacity && (t_rand_opacity.checked = this.paper.randomOpacity);
-      p_color && (p_color.value = this.paper.pageColor);
-
-      // --- output UI
-      p_width &&
-        (p_width.nextElementSibling.value = this.paper.dimensions.w + 'px');
-      p_height &&
-        (p_height.nextElementSibling.value = this.paper.dimensions.h + 'px');
-
-      // p_height && (p_height.value = this.paper.dimensions.h);
-      // --
-
-      //Editor options
-      t_overwrite && (t_overwrite.checked = this.editor.overwrite);
-      // console.log(this.paper.randomOpacity);
-    };
-
     addTextControlListeners(textControls);
     addLetterControlListeners(letterControls);
-    syncDOM(DOMControls);
+  }
+
+  // Synchronise the values of sliders/checkboxes to the state
+  // Should cover all defaultPresets that have corresponding DOM inputs (for paper and editor)
+  syncDOM(DOMControls) {
+    const {
+      t_color,
+      t_font,
+      p_color,
+      p_width,
+      p_height,
+      t_line_height,
+      t_letter_spacing,
+      t_font_scale,
+      t_broken,
+      l_color,
+      t_rand_opacity,
+      t_overwrite,
+    } = DOMControls;
+    //Paper options
+    p_width && (p_width.value = this.paper.dimensions.w);
+    p_height && (p_height.value = this.paper.dimensions.h);
+
+    t_line_height && (t_line_height.value = this.paper.lineHeight);
+    t_letter_spacing && (t_letter_spacing.value = this.paper.letterSpacing);
+    t_font_scale && (t_font_scale.value = this.paper.fontRatio);
+    t_broken && (t_broken.value = this.paper.broken);
+
+    t_color && (t_color.value = this.paper.fontColor);
+    l_color && (l_color.value = this.paper.fontColor);
+
+    t_rand_opacity && (t_rand_opacity.checked = this.paper.randomOpacity);
+    p_color && (p_color.value = this.paper.pageColor);
+
+    // --- output UI
+    p_width &&
+      (p_width.nextElementSibling.value = this.paper.dimensions.w + 'px');
+    p_height &&
+      (p_height.nextElementSibling.value = this.paper.dimensions.h + 'px');
+
+    // p_height && (p_height.value = this.paper.dimensions.h);
+    // --
+
+    //Editor options
+    t_overwrite && (t_overwrite.checked = this.editor.overwrite);
+    // console.log(this.paper.randomOpacity);
+  }
+
+  //create DOM elements that are needed [future: create all dom elements?]
+  buildDOM(DOMControls) {
+    const { t_font } = DOMControls;
+
+    const buildFontDropdown = () => {
+      const { fonts } = this.options;
+      fonts.forEach((font) => {
+        let opt = document.createElement('option');
+        opt.innerText = font.name;
+        opt.value = font.url;
+        t_font.appendChild(opt);
+      });
+    };
+    buildFontDropdown();
   }
 
   renderLastText = () => {
@@ -290,4 +339,13 @@ export default class CanvasWriter {
         input.value = entry.styles[key];
       });
   };
+
+  loadFont(name, url) {
+    if (this.loadedFonts.includes(name)) return;
+    this.loadedFonts.push(name);
+    let link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    document.head.appendChild(link);
+  }
 }
