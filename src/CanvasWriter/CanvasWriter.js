@@ -109,23 +109,29 @@ export default class CanvasWriter {
       } = textControls;
 
       const handleKeyDown = (e) => {
-        // console.log(e);
-
-        if (document.activeElement.tagName == 'INPUT') {
-          // e.preventDefault();
-          console.log(document.activeElement.tagName);
+        let key = e.key;
+        if (e.key === 'Control') {
+          return;
+        }
+        // adjust input rangesliders with arrows else type
+        if (
+          document.activeElement.tagName == 'INPUT' &&
+          (e.key === 'ArrowLeft' || e.key === 'ArrowRight')
+        ) {
           return;
         } else {
           e.preventDefault();
         }
-        // if (e.key === ' ') {
-        //cancel default action (scrolls down page) [if t_key is set to document which is the default (as it needs keydown event if not using tabindex-1 hack)]
+
+        // if (key === 'v' && e.ctrlKey) { //paste
+        //   key = '\ud83d\ude03';
+        //   key = 'é';
         // }
+
         this.cancelAnimation && this.cancelAnimation(); //this is from GIFWriter class...
-        this.editor.handleKeyInput(e.key);
+        this.editor.handleKeyInput(key);
         // this.paper.refreshCanvas();
         this.updateLetterControls(letterControls);
-
         this.renderLastText();
       };
       const handleLineHeightRange = (e) => {
@@ -213,6 +219,7 @@ export default class CanvasWriter {
       t_redo?.addEventListener('click', handleRedoButton);
       t_reset?.addEventListener('click', handleResetButton);
       t_key?.addEventListener('keydown', handleKeyDown);
+
       // canvas?.addEventListener('keydown', handleKeyDown);
     };
 

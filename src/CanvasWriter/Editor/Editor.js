@@ -231,21 +231,17 @@ export default class Editor {
       this.addToHistory(text);
 
       return;
-    }
-
-    if (key === 'ArrowLeft' || key === 'ArrowRight') {
+    } else if (key === 'ArrowLeft' || key === 'ArrowRight') {
       this.addToHistory(text);
       return;
-    }
-
-    if (key.length === 1 || key === 'Enter') {
+    } else if (key.length === 1 || key === 'Enter') {
       // continue
-    } else {
+    } else if (true) {
+      // } else if (key[0] == '\\') {
+      // console.dir(key);
       // don't handle other keys (e.g shift/esc/ctrl)
-      return;
+      // return;
     }
-
-    // Handle ctrl, shift etc?
 
     // Add to history
     if (!this.getCurrentEntry()) {

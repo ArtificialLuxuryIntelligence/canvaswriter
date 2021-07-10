@@ -238,10 +238,10 @@ export default class Paper {
       let c1 = this.#padding.x + (0 * width) / this.#grid.x;
       let c2 = this.#padding.y + (0 * height) / this.#grid.y;
       this.drawLetter('_', c1, c2);
-      console.log('no text');
       return;
     }
 
+    //unused?
     if (historyText.cursorIndex === null) {
       let c1 = this.#padding.x + (0 * width) / this.#grid.x;
       let c2 = this.#padding.y + (0 * height) / this.#grid.y;
@@ -250,7 +250,7 @@ export default class Paper {
       // return;
     }
 
-    let i, j;
+    let i;
 
     for (i = 0; i < this.#grid.y; i++) {
       let group = historyText?.groups[idx];
@@ -258,7 +258,6 @@ export default class Paper {
         let c1 = this.#padding.x + (0 * width) / this.#grid.x;
         let c2 = this.#padding.y + (i * height) / this.#grid.y;
         this.drawLetter('_', c1, c2);
-
         return;
       }
       // if (i >= 1) {
@@ -288,8 +287,8 @@ export default class Paper {
 
         let entries = group?.entries;
         if (entries && entries.length) {
+          let groupAddedWidth = 0;
           entries.forEach((entry) => {
-            let groupAddedWidth = 0;
             if (entry.key.length === 1) {
               //is a single character
               let l = this.drawLetter(
@@ -300,17 +299,14 @@ export default class Paper {
                 entry.editedStyles
               );
               if (l.width > groupAddedWidth) {
-                // console.log('lw', l.width);
                 groupAddedWidth = l.width;
               }
             } else if (entry.key === 'Enter') {
               i++;
-              // j = -1;
               addedWidth = 0;
-              // break;
             }
-            addedWidth += groupAddedWidth * this.letterSpacing;
           });
+          addedWidth += groupAddedWidth * this.letterSpacing;
 
           if (cursorNext) {
             let l = this.drawLetter('_', c1, c2);
@@ -332,7 +328,7 @@ export default class Paper {
 
           if (!group && !cursorRendered) {
             let l = this.drawLetter('_', c1, c2);
-            addedWidth += l.width * this.letterSpacing;
+            // addedWidth += l.width * this.letterSpacing;
             cursorRendered = true;
             console.log('breaking');
 
@@ -397,12 +393,12 @@ export default class Paper {
   // ---End exposed methods --------------------------------------------
 
   drawLetter(letter, x, y, styles, editedStyles) {
-    // this.ctx.textAlign = 'center'; //NOTE only for MONO
+    // this.ctx.textAlign = 'center'; //NOTE only for MONO [not even needed there becaus letters already centred]
 
     this.ctx.textBaseline = 'middle';
     // this.ctx.font = `${this.#fontSize}px JetBrains Mono`;
-    // this.ctx.font = `${this.#fontSize}px Roboto Mono`;
-    this.ctx.font = `${this.#fontSize}px Ariel`; //non mono test font
+    this.ctx.font = `${this.#fontSize}px Roboto Mono`;
+    // this.ctx.font = `${this.#fontSize}px Ariel`; //non mono test font
 
     this.ctx.fillStyle = this._fontColor;
     let letterStyles;
@@ -452,6 +448,8 @@ export default class Paper {
       this.ctx.setTransform(1, 0, 0, 1, 1, 1); // scale and translate in one call
       return this.ctx.measureText(letter);
     } else {
+      // this.ctx.font = `${this.#fontSize}px serif`;
+
       this.ctx.fillText(letter, x, y);
       return this.ctx.measureText(letter);
     }

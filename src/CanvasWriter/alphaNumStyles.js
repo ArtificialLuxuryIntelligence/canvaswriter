@@ -1,13 +1,25 @@
 import { getRandomArbitrary } from '../helpers';
 
+let rotationMax = 15;
+let translationXMax = 0.25;
+let translationYMax = 0.25;
+
 const alphaNums =
   '`1234567890-=qwertyuiop[]asdfghjkl;\'zxcvbnm,./¬!"£$%^&*()+QWERTYUIOP{}~ASDFGHJKL:@ZXCVBNM<>?';
 
+// TODO:
+// replaces initAlphaNumStyles so that letters can be added dynamically (and not rely on the above list)
+class ANStyles {
+  constructor(broken) {
+    this.broken = broken;
+    this.letters = [];
+  }
+  getStyles(letter) {}
+  genStyles(letter) {}
+}
+//
 const initAlphaNumStyles = (opts = { broken: 0.5 }) => {
   let { broken } = opts;
-  let rotationMax = 15;
-  let translationXMax = 0.25;
-  let translationYMax = 0.25;
 
   let settings = {
     rotation: broken * rotationMax,
