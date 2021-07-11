@@ -22,182 +22,233 @@
   </head>
   <body>
     <div id="app">
-      <!-- HTML elements for UI controls -->
-
-      <div class="controls ui-controls">
-        <div class="">
-          <label>
-            zoom
-            <input
-              id="zoom"
-              type="range"
-              min="10"
-              max="200"
-              value="100"
-              step="1"
-              oninput="zoomAmount.value=zoom.value+'%'"
-            />
-            <output id="zoomAmount" name="zoomAmount" for="zoom">100%</output>
-          </label>
-        </div>
-      </div>
-
       <!-- HTML elements for GIFWriter controls -->
-      <div class="controls gifwriter-controls">
-        <div class="page-controls">
-          <label> Page colour <input id="page-color" type="color" /> </label>
-          <label>
-            Page width
-            <!-- step needs to be 2 for ffmpeg to process file correctly -->
-            <input
-              id="pageWidth"
-              type="range"
-              min="200"
-              max="1200"
-              step="2"
-              oninput="widthAmount.value=pageWidth.value+'px'"
-            />
-            <output id="widthAmount" name="widthAmount" for="pageWidth"
-              >100px</output
-            >
+      <div class="controls-container gifwriter-controls">
+        <div class="controls page-controls">
+          <h3>Page</h3>
+          <label class="menu-item">
+            <span> Colour </span>
+            <div class="menu-dd">
+              <input id="page-color" type="color" />
+            </div>
           </label>
-          <label>
-            Page height
+          <label class="menu-item">
+            <span> Width </span>
             <!-- step needs to be 2 for ffmpeg to process file correctly -->
-
-            <input
-              id="pageHeight"
-              type="range"
-              min="100"
-              max="1200"
-              step="2"
-              oninput="heightAmount.value=pageHeight.value+'px'"
-            />
-            <output id="heightAmount" name="heightAmount" for="pageWidth"
-              >100px</output
-            >
+            <div class="menu-dd">
+              <input
+                id="pageWidth"
+                type="range"
+                min="200"
+                max="1200"
+                step="2"
+                oninput="widthAmount.value=pageWidth.value+'px'"
+              />
+              <output id="widthAmount" name="widthAmount" for="pageWidth"
+                >100px</output
+              >
+            </div>
+          </label>
+          <label class="menu-item">
+            <span> Height </span>
+            <!-- step needs to be 2 for ffmpeg to process file correctly -->
+            <div class="menu-dd">
+              <input
+                id="pageHeight"
+                type="range"
+                min="100"
+                max="1200"
+                step="2"
+                oninput="heightAmount.value=pageHeight.value+'px'"
+              />
+              <output id="heightAmount" name="heightAmount" for="pageWidth"
+                >100px</output
+              >
+            </div>
+          </label>
+          <label class="menu-item">
+            <span>Zoom</span>
+            <div class="menu-dd">
+              <input
+                id="zoom"
+                type="range"
+                min="10"
+                max="200"
+                value="100"
+                step="1"
+                oninput="zoomAmount.value=zoom.value+'%'"
+              />
+              <output id="zoomAmount" name="zoomAmount" for="zoom">100%</output>
+            </div>
           </label>
         </div>
-        <div class="global-text-controls">
-          <label for="overwrite">
-            Overwrite <input type="checkbox" name="overwrite" id="overwrite" />
+
+        <div class="controls global-text-controls">
+          <h3>Global</h3>
+          <label class="menu-item">
+            <span> Line height </span>
+            <div class="menu-dd">
+              <input
+                id="line-height"
+                type="range"
+                min="0.02"
+                max="3"
+                step="0.02"
+              />
+            </div>
           </label>
-          <button id="undo">Undo</button>
-          <button id="redo">Redo</button>
-          <button id="reset">Reset</button>
-          <label>
-            Line height
-            <input
-              id="line-height"
-              type="range"
-              min="0.02"
-              max="3"
-              step="0.02"
-            />
+          <label class="menu-item">
+            <span> Letter spacing </span>
+            <div class="menu-dd">
+              <input
+                id="letter-spacing"
+                type="range"
+                min="0.4"
+                max="2"
+                step="0.01"
+              />
+            </div>
           </label>
-          <label>
-            Letter spacing
-            <input
-              id="letter-spacing"
-              type="range"
-              min="0.4"
-              max="2"
-              step="0.01"
-            />
+          <label class="menu-item">
+            <span> Font size </span>
+            <div class="menu-dd">
+              <input
+                id="font-scale"
+                type="range"
+                min="0.5"
+                max="4"
+                step="0.01"
+                value="1"
+              />
+            </div>
           </label>
-          <label>
-            Font size
-            <input
-              id="font-scale"
-              type="range"
-              min="0.5"
-              max="4"
-              step="0.01"
-              value="1"
-            />
-          </label>
-          <label>
-            Font
-            <select id="font"></select
+          <label class="menu-item">
+            <span> Font </span>
+            <div class="menu-dd">
+              <select id="font"></select></div
           ></label>
 
-          <label>
-            Wonkiness
-            <input id="broken" type="range" min="0" max="1" step="0.05" />
+          <label class="menu-item">
+            <span>Wonkiness</span>
+            <div class="menu-dd">
+              <input id="broken" type="range" min="0" max="1" step="0.05" />
+            </div>
           </label>
         </div>
-        <div class="text-controls">
-          <label> Text colour <input id="text-color" type="color" /> </label>
 
-          <label for="random-opacity">
-            Random shade
-            <input
-              type="checkbox"
-              name="randomOpacityToggle"
-              id="random-opacity"
-            />
+        <div class="controls text-controls">
+          <h3>Text</h3>
+          <label class="menu-item">
+            <span>Text colour</span>
+            <div class="menu-dd">
+              <input id="text-color" type="color" />
+            </div>
+          </label>
+
+          <label class="menu-item" for="random-opacity">
+            <span> Random shade </span>
+            <div class="menu-dd">
+              <input
+                type="checkbox"
+                name="randomOpacityToggle"
+                id="random-opacity"
+              />
+            </div>
           </label>
         </div>
-        <div class="letter-controls">
-          <label>
-            Letter colour
-            <input id="letter-color" data-key="color" type="color" />
+
+        <div class="controls letter-controls">
+          <h3>Letter</h3>
+          <label class="menu-item">
+            <span> Letter colour </span>
+            <div class="menu-dd">
+              <input id="letter-color" data-key="color" type="color" />
+            </div>
           </label>
-          <label>
-            X
-            <input
-              id="letter-x"
-              data-key="x"
-              type="range"
-              min="-1"
-              max="1"
-              step="0.05"
-            />
+          <label class="menu-item">
+            <span> X </span>
+            <div class="menu-dd">
+              <input
+                id="letter-x"
+                data-key="x"
+                type="range"
+                min="-1"
+                max="1"
+                step="0.05"
+              />
+            </div>
           </label>
-          <label>
-            Y
-            <input
-              id="letter-y"
-              data-key="y"
-              type="range"
-              min="-1"
-              max="1"
-              step="0.05"
-            />
+          <label class="menu-item">
+            <span> Y </span>
+            <div class="menu-dd">
+              <input
+                id="letter-y"
+                data-key="y"
+                type="range"
+                min="-1"
+                max="1"
+                step="0.05"
+              />
+            </div>
           </label>
-          <label>
-            R
-            <input
-              id="letter-r"
-              data-key="rotation"
-              type="range"
-              min="-180"
-              max="180"
-              step="1"
-            />
+          <label class="menu-item">
+            <span> R </span>
+            <div class="menu-dd">
+              <input
+                id="letter-r"
+                data-key="rotation"
+                type="range"
+                min="-180"
+                max="180"
+                step="1"
+              />
+            </div>
           </label>
-          <label>
-            Scale
-            <input
-              id="letter-s"
-              data-key="scale"
-              type="range"
-              min="0.1"
-              max="5"
-              step="0.05"
-            />
+          <label class="menu-item">
+            <span> Scale </span>
+            <div class="menu-dd">
+              <input
+                id="letter-s"
+                data-key="scale"
+                type="range"
+                min="0.1"
+                max="5"
+                step="0.05"
+              />
+            </div>
           </label>
-          <label>
-            Opacity
-            <input
-              id="letter-o"
-              data-key="opacity"
-              type="range"
-              min="0.1"
-              max="1"
-              step="0.05"
-            />
+          <label class="menu-item">
+            <span> Opacity </span>
+            <div class="menu-dd">
+              <input
+                id="letter-o"
+                data-key="opacity"
+                type="range"
+                min="0.1"
+                max="1"
+                step="0.05"
+              />
+            </div>
           </label>
+        </div>
+
+        <div class="controls">
+          <h3>Edit</h3>
+          <label class="menu-item" for="overwrite">
+            <span>Overwrite</span>
+            <div class="menu-dd">
+              <input type="checkbox" name="overwrite" id="overwrite" />
+            </div>
+          </label>
+          <div class="menu-item">
+            <button id="undo">Undo</button>
+          </div>
+          <div class="menu-item">
+            <button id="redo">Redo</button>
+          </div>
+          <div class="menu-item">
+            <button id="reset">Reset</button>
+          </div>
         </div>
       </div>
       <div class="canvas-container">
@@ -205,44 +256,60 @@
         <!-- <canvas id="paper" tabindex="1"></canvas> -->
       </div>
 
-      <div class="controls">
-        <div class="animation-controls">
-          <label for="animate-history-toggle">
-            Animate history?
-            <input
-              type="checkbox"
-              name="linearToggle"
-              id="animate-history-toggle"
-            />
-          </label>
+      <div class="controls-container">
+        <div class="controls animation-controls">
+          <h3>Animation</h3>
+          <div class="menu-item">
+            <button id="animation-start">Start</button>
+          </div>
 
-          <button id="animation-start">Start animation</button>
-          <label>
-            Faster
-            <input
-              id="animation-speed"
-              type="range"
-              min="0.02"
-              max="0.4"
-              step="0.02"
-            />
-            Slower
+          <label class="menu-item">
+            <span> Speed </span>
+            <div class="menu-dd">
+              <input
+                id="animation-speed"
+                type="range"
+                min="0.02"
+                max="0.4"
+                step="0.02"
+              />
+            </div>
           </label>
-          <label>
-            Animation start
-            <input
-              id="animation-start-index"
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-            />
+          <label class="menu-item">
+            <span> Start point </span>
+            <div class="menu-dd">
+              <input
+                id="animation-start-index"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+              />
+            </div>
+          </label>
+          <label class="menu-item" for="animate-history-toggle">
+            <span> Show History </span>
+            <div class="menu-dd">
+              <input
+                type="checkbox"
+                name="linearToggle"
+                id="animate-history-toggle"
+              />
+            </div>
           </label>
         </div>
-        <div class="save-controls">
-          <button id="record-vid">Record Vid</button>
-          <button id="record-gif">Record Gif</button>
-          <button id="save-image">Save image</button>
+
+        <div class="controls save-controls">
+          <h3>Saving</h3>
+          <div class="menu-item">
+            <button id="record-vid">Record Vid</button>
+          </div>
+          <div class="menu-item">
+            <button id="record-gif">Record Gif</button>
+          </div>
+          <div class="menu-item">
+            <button id="save-image">Save image</button>
+          </div>
         </div>
       </div>
     </div>
