@@ -160,8 +160,10 @@ export default class GIFWriter extends CanvasWriter {
           type();
         }, interval);
       } else {
-        clearTimeout(this.timer);
-        onAnimationEnd && onAnimationEnd();
+        this.timer = setTimeout(() => {
+          onAnimationEnd && onAnimationEnd();
+          clearTimeout(this.timer);
+        }, 500); //timeout here otherwise last frame isn't captured
       }
     };
     type();

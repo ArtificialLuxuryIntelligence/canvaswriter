@@ -1,6 +1,7 @@
 import './styles.scss';
 // import CanvasWriter from './CanvasWriter';
 import GIFWriter from './GIFWriter';
+import CanvasWriter from './CanvasWriter';
 
 const DOMElements = {
   // canvas
@@ -92,6 +93,7 @@ function main() {
     presets,
     options,
   });
+
   addZoomHandler();
 
   console.log(Gwriter);
