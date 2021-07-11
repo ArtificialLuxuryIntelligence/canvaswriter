@@ -77,7 +77,7 @@ function main() {
     randomOpacity: false,
     overwrite: false,
     lineHeight: 0.9,
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   };
   const options = {
     // fonts: [

@@ -75,6 +75,9 @@ body {
       border: 3px solid rgba(146, 146, 146, 0.425);
       // max-width: 90vw;
       margin: 0 auto;
+      &:focus {
+        // outline: 1px solid red;
+      }
     }
   }
 }

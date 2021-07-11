@@ -442,6 +442,20 @@ export default class Paper {
       this.ctx.fillStyle = col;
 
       //transforms
+
+      //alt
+      // this.ctx.setTransform(
+      //   1,
+      //   0,
+      //   0,
+      //   1,
+      //   x + posX * this.#fontSize,
+      //   y + posY * this.#fontSize
+      // ); // scale and translate in one call
+
+      // this.ctx.font = `${this.#fontSize * scale}px ${this._font}`;
+      //end alt//
+
       this.ctx.setTransform(
         scaleX,
         0,
@@ -450,6 +464,7 @@ export default class Paper {
         x + posX * this.#fontSize,
         y + posY * this.#fontSize
       ); // scale and translate in one call
+
       this.ctx.rotate((rot * Math.PI) / 180);
       this.ctx.fillText(letter, 0, 0);
 

@@ -1,6 +1,10 @@
 const defaultOptions = {
   fonts: [
     {
+      name: 'Ariel',
+      url: '',
+    },
+    {
       name: 'Roboto Mono',
       url: 'https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap',
     },

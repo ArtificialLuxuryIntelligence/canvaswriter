@@ -119,8 +119,7 @@
           <label>
             Font
             <select id="font"></select
-            ></label
-          >
+          ></label>
 
           <label>
             Wonkiness
@@ -131,7 +130,7 @@
           <label> Text colour <input id="text-color" type="color" /> </label>
 
           <label for="random-opacity">
-            Toggle random opacity
+            Random shade
             <input
               type="checkbox"
               name="randomOpacityToggle"
@@ -201,7 +200,10 @@
           </label>
         </div>
       </div>
-      <div class="canvas-container"><canvas id="paper"></canvas></div>
+      <div class="canvas-container">
+        <canvas id="paper"></canvas>
+        <!-- <canvas id="paper" tabindex="1"></canvas> -->
+      </div>
 
       <div class="controls">
         <div class="animation-controls">

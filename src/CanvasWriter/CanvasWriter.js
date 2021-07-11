@@ -168,7 +168,6 @@ export default class CanvasWriter {
       const handleRandOpacityToggle = (e) => {
         console.log('ok');
         this.paper.randomOpacity = e.target.checked;
-        console.log(this.paper.randomOpacity);
         // this.renderLastText();
       };
       const handleOverwriteToggle = (e) => {
@@ -223,7 +222,6 @@ export default class CanvasWriter {
       };
 
       const handlePageHeightRange = (e) => {
-        console.log('han');
         this.paper.setDimensions(
           this.paper.dimensions.w,
           Number(e.target.value)
