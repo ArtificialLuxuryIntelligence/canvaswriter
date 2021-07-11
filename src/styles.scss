@@ -5,43 +5,74 @@
 body {
   font-family: sans-serif;
   font-size: 13px;
-  height: 100vh;
+  // height: 100vh;
   width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
+
   // display: grid;
   // place-items: center;
 }
 
 #app {
-  // display: flex;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // width: 100vw;
 
+  #controls-menu {
+    &:hover {
+      & + .fixed-container {
+        display: flex;
+        opacity: 1;
+      }
+    }
+  }
+
+  .fixed-container {
+    position: fixed;
+    opacity: 0;
+    transition: all 0.4s ease;
+    display: flex;
+    justify-content: center;
+    width: 100vw;
+    background-color: white;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
   .controls-container {
+    // display: none;
+    //
     width: auto;
     display: flex;
-    flex-direction: column;
-    width: 100%;
+    flex-wrap: wrap;
+    width: 80vw;
+    margin: 0 auto;
+
+    // flex-direction: column;
+    // width: 100%;
+    max-width: 80vw;
     // overflow: hidden;
     // display: none;
     // height: 100x;
     // width: 30px;
+    // border: 1px solid red;
 
     h3 {
-      width: 9ch;
+      // width: 9ch;
       margin: 0.5em 0;
       margin-right: 0.4em;
-      // display: inline;
+      // display: none;
+      display: inline;
     }
     .controls {
-      // border: 1px solid #ccc;
-      // padding: 0.2em;
-      // margin: 0.5em auto;
-      // width: 80%;
-      // display: block;
-      // line-height: 1;
-      // transition: all 0.2s;
-
       display: flex;
-      // align-items: flex-start;
       align-items: center;
+      margin: 0.3em 0.5em;
+      // border-right: 1px solid red;
+      // min-width: 30vw;
     }
 
     .menu-item {
@@ -67,6 +98,7 @@ body {
         padding: 0.4em;
         background: white;
         border: 1px solid gray;
+        border-radius: 3px;
       }
       .menu-dd {
         visibility: hidden;
@@ -79,8 +111,12 @@ body {
         padding: 0.4em;
         // margin-top: 1em;
         z-index: 10;
-
       }
+    }
+
+    input,
+    button {
+      cursor: pointer;
     }
 
     // specific menu item styling
@@ -96,15 +132,22 @@ body {
     }
   }
   .canvas-container {
+    // height: 100vh;
     display: flex;
-    padding: 1em;
+    align-items: center;
+    // padding: 1em;
     #paper {
       border: 3px solid rgba(146, 146, 146, 0.425);
       // max-width: 90vw;
-      margin: 0 auto;
+      // margin: 0 auto;
+      margin: 20vh auto;
       &:focus {
         // outline: 1px solid red;
       }
     }
+  }
+
+  .instructions {
+    width: 80%;
   }
 }

@@ -262,7 +262,7 @@ export default class Paper {
 
     let i;
 
-    for (i = 0; i < this.#grid.y; i++) {
+    for (i = 0; i <= this.#grid.y + 1; i++) {
       let group = historyText?.groups[idx];
       if (!group && !cursorRendered) {
         let c1 = this.#padding.x + (0 * width) / this.#grid.x;
