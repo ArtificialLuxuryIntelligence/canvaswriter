@@ -203,12 +203,16 @@ export default class CanvasWriter {
         this.loadFont(text, val);
         this.paper.font = text;
         this.renderLastText();
+        //derp
         setTimeout(() => {
           this.renderLastText(); //give font time to load
+          setTimeout(() => {
+            this.renderLastText(); // give font more time to load
+            setTimeout(() => {
+              this.renderLastText(); // give font more time to load
+            }, 1000);
+          }, 1000);
         }, 1000);
-        setTimeout(() => {
-          this.renderLastText(); // give font more time to load
-        }, 4000);
       };
 
       const handlePageColorInput = (e) => {

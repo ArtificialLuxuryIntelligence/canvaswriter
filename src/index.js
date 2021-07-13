@@ -87,6 +87,40 @@ function main() {
     //     url: 'https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap',
     //   },
     // ],
+    callbacks: {
+      onImage: (dataURL) => {
+        const img = new Image();
+        img.src = dataURL;
+        document.body.append(img);
+        const a = document.createElement('a');
+        a.download = 'myPicture.png';
+        a.href = img.src;
+        a.textContent = 'download the pic';
+        document.body.appendChild(a);
+      },
+      onGif: (objectURL) => {
+        const img = new Image();
+        img.src = objectURL;
+        document.body.append(img);
+        const a = document.createElement('a');
+
+        a.download = 'myGif.gif';
+        a.href = img.src;
+        a.textContent = 'download the gif';
+        document.body.appendChild(a);
+      },
+      onVideo: (objectURL) => {
+        const vid = document.createElement('video');
+        vid.src = objectURL;
+        vid.controls = true;
+        document.body.appendChild(vid);
+        const a = document.createElement('a');
+        a.download = 'myvideo.mp4';
+        a.href = vid.src;
+        a.textContent = 'download the video';
+        document.body.appendChild(a);
+      },
+    },
   };
   const Gwriter = new GIFWriter({
     elements: DOMElements,

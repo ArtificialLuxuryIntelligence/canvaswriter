@@ -5,27 +5,6 @@ import GIF from '../gif.js/gif';
 import { GIFWriterDefaults } from '../defaultPresets';
 import { transcodeBlob } from '../videoTomp4';
 
-function exportVid(blob) {
-  console.log('inputblob', blob);
-  const vid = document.createElement('video');
-  vid.src = URL.createObjectURL(blob);
-  vid.controls = true;
-  document.body.appendChild(vid);
-  const a = document.createElement('a');
-  a.download = 'myvideo.mp4';
-  a.href = vid.src;
-  a.textContent = 'download the video';
-  document.body.appendChild(a);
-}
-
-function exportPic(canvas) {
-  const image = canvas.toDataURL('image/png');
-  console.log(image);
-  const img = new Image();
-  img.src = image;
-  document.body.append(img);
-}
-
 // Extends CanvasWriter functionality
 export default class GIFWriter extends CanvasWriter {
   constructor({ elements, presets, options }) {
@@ -36,17 +15,14 @@ export default class GIFWriter extends CanvasWriter {
     this.startIndex = 0;
     this.maxStartIndex = null;
 
+    //what to do with the saved image/vid/gif
+    this.callbacks = options.callbacks;
+
     //presets
     this.historyAnimation = GWpresets.historyAnimation;
     this.animationSpeed = GWpresets.animationSpeed; //interval between frames in s
     this.init_gifwriter();
   }
-
-  // more dom nodes :
-
-  // - output img/link /container < yeah! container to spit out results into (prepend?)
-
-  // onRecorded // onSaved callbacks [probs used to update UI]
 
   cancelAnimation() {
     clearTimeout(this.timer);
@@ -188,8 +164,11 @@ export default class GIFWriter extends CanvasWriter {
 
       let mp4Blob = await transcodeBlob(webmBlob, fps);
 
-      exportVid(webmBlob);
-      exportVid(mp4Blob);
+      let objectURL = URL.createObjectURL(mp4Blob);
+
+      this.callbacks.onVideo(objectURL);
+      // exportVid(webmBlob);
+      // exportVid(mp4Blob);
     };
 
     // rec.onstop = (e) => {
@@ -233,8 +212,10 @@ export default class GIFWriter extends CanvasWriter {
 
     gif.on('finished', (blob) => {
       const img = new Image();
-      img.src = URL.createObjectURL(blob);
-      document.body.append(img);
+      let objectURL = URL.createObjectURL(blob);
+      this.callbacks.onGif(objectURL);
+      // img.src = objectURL;
+      // document.body.append(img);
     });
 
     const onAnimationEnd = () => {
@@ -253,7 +234,9 @@ export default class GIFWriter extends CanvasWriter {
 
   saveImage() {
     // save as img
-    exportPic(this.DOMControls.canvas);
+
+    const dataURL = this.DOMControls.canvas.toDataURL('image/png');
+    this.callbacks.onImage(dataURL);
   }
 
   init_gifwriter() {
